@@ -1,55 +1,62 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!-- Sync Impact Report:
+Version change: Initial creation -> 1.0.0
+List of modified principles: All principles are new.
+Added sections: Vision, Success Criteria, Constraints, Stakeholders, Brand Voice.
+Removed sections: None
+Templates requiring updates:
+- .specify/templates/plan-template.md: ⚠ pending (review for alignment with new principles)
+- .specify/templates/spec-template.md: ⚠ pending (review for alignment with new principles)
+- .specify/templates/tasks-template.md: ⚠ pending (review for alignment with new principles)
+- .specify/templates/commands/*.md: ⚠ pending (review for outdated references)
+- README.md: ⚠ pending (review for references to principles)
+Follow-up TODOs: None
+-->
+# Physical AI and Humanoid Robotics Book Constitution
+
+## Vision
+To provide an accessible and engaging learning resource for beginners to intermediate learners in Physical AI and Humanoid Robotics, emphasizing practical, hands-on application.
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Accessibility & Clarity
+Content must be clear, concise, and understandable for beginners, while offering depth for intermediate learners. Complex concepts are broken down with clear explanations and examples.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Hands-on Learning
+Prioritize practical exercises, code examples, and projects that enable readers to build and experiment directly. Theoretical concepts are reinforced with immediate application.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Docusaurus-driven Documentation
+All content and examples will be structured and delivered using Docusaurus, leveraging its features for maintainability, searchability, and versioning.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Accuracy & Up-to-dateness
+Information presented must be technically accurate and reflect current best practices in Physical AI and Humanoid Robotics. Content will be regularly reviewed and updated.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+## Success Criteria
 
-### [PRINCIPLE_6_NAME]
+*   High reader engagement and positive feedback on clarity and practical value.
+*   Achieving a significant number of successful project implementations by readers.
+*   A well-maintained and easily navigable Docusaurus site with comprehensive documentation.
+*   Positive reviews and adoption within the robotics and AI learning communities.
 
+## Constraints
 
-[PRINCIPLE__DESCRIPTION]
+*   **Audience Scope**: Strictly adhere to beginner to intermediate levels; advanced topics will be introduced only as stepping stones.
+*   **Technology Stack**: Docusaurus is the sole platform for documentation.
+*   **Resource Limitations**: Content development will be mindful of reader's potential hardware/software limitations for hands-on exercises, providing alternatives where possible.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Stakeholders
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+*   **Readers/Learners**: Primary audience seeking to learn about Physical AI and Humanoid Robotics.
+*   **Authors/Contributors**: Responsible for content creation and maintenance.
+*   **Reviewers/Editors**: Ensure content quality, accuracy, and adherence to principles.
+*   **Publishing Platform/Community**: Hosts and promotes the book (e.g., Docusaurus community, online learning platforms).
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+## Brand Voice
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+*   **Educational & Encouraging**: Informative, clear, and supportive, fostering a positive learning environment.
+*   **Practical & Action-Oriented**: Focus on "how-to" with actionable steps, inspiring readers to build.
+*   **Professional & Engaging**: Maintain a high standard of technical accuracy while keeping the content engaging and approachable.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
+This Constitution supersedes all other practices. Amendments require documentation, approval, and a migration plan. All Pull Requests (PRs) and reviews must verify compliance. Complexity must be justified.
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
-
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2025-12-05 | **Last Amended**: 2025-12-05
