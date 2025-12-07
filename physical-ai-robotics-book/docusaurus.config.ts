@@ -35,6 +35,10 @@ const config: Config = {
     locales: ['en'],
   },
 
+  clientModules: [
+    require.resolve('./src/components/Root.tsx'),
+  ],
+
   presets: [
     [
       'classic',

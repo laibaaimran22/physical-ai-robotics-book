@@ -1,0 +1,173 @@
+/* Additional design enhancements for Physical AI and Robotics Book */
+
+/* Navigation enhancements */
+.navbar {
+  box-shadow: var(--ifm-global-shadow);
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+}
+
+[data-theme='dark'] .navbar {
+  border-bottom: 1px solid var(--ifm-color-emphasis-800);
+}
+
+/* Button enhancements */
+.button {
+  border-radius: var(--ifm-global-radius);
+  font-weight: 600;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--ifm-global-shadow-md);
+}
+
+/* Card enhancements */
+.card {
+  border-radius: var(--ifm-card-border-radius);
+  box-shadow: var(--ifm-global-shadow);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--ifm-global-shadow-lg);
+}
+
+/* Doc page enhancements */
+.doc-page {
+  padding: 2rem 0;
+}
+
+.doc-page h1, .doc-page h2, .doc-page h3, .doc-page h4 {
+  font-weight: 600;
+}
+
+/* Sidebar enhancements */
+.menu {
+  border-right: 1px solid var(--ifm-color-emphasis-200);
+}
+
+[data-theme='dark'] .menu {
+  border-right: 1px solid var(--ifm-color-emphasis-800);
+}
+
+/* Code block enhancements */
+.prism-code {
+  border-radius: var(--ifm-global-radius);
+  font-size: var(--ifm-code-font-size);
+}
+
+/* Footer enhancements */
+.footer {
+  background: var(--ifm-background-surface-color);
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+  margin-top: 4rem;
+}
+
+[data-theme='dark'] .footer {
+  border-top: 1px solid var(--ifm-color-emphasis-800);
+}
+
+/* Alert enhancements */
+.alert {
+  border-radius: var(--ifm-global-radius);
+  border-left-width: 4px;
+}
+
+/* Tabs enhancements */
+.tabs {
+  border-radius: var(--ifm-global-radius);
+  overflow: hidden;
+}
+
+.tab-item {
+  padding: 0.75rem 1.5rem;
+  transition: all 0.3s ease;
+}
+
+/* Pagination enhancements */
+.pagination-nav {
+  margin-top: 3rem;
+}
+
+.pagination-nav__item {
+  border-radius: var(--ifm-global-radius);
+  box-shadow: var(--ifm-global-shadow);
+  transition: all 0.3s ease;
+}
+
+.pagination-nav__item:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--ifm-global-shadow-md);
+}
+
+/* Table enhancements */
+.table-wrapper {
+  border-radius: var(--ifm-global-radius);
+  overflow: hidden;
+  box-shadow: var(--ifm-global-shadow);
+}
+
+.table-wrapper table {
+  margin: 0;
+}
+
+/* Search bar enhancements */
+.navbar__search-input {
+  border-radius: var(--ifm-global-radius);
+  border: 1px solid var(--ifm-color-emphasis-300);
+}
+
+[data-theme='dark'] .navbar__search-input {
+  border: 1px solid var(--ifm-color-emphasis-700);
+}
+
+/* Mobile menu enhancements */
+.navbar-sidebar {
+  background: var(--ifm-background-surface-color);
+}
+
+/* Custom animation for interactive elements */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-element {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* Enhanced typography */
+.text--center {
+  text-align: center !important;
+}
+
+.text--bold {
+  font-weight: 700 !important;
+}
+
+/* Link enhancements */
+a {
+  transition: color 0.2s ease;
+}
+
+/* Responsive enhancements */
+@media (max-width: 996px) {
+  .heroBanner {
+    margin-left: 1rem;
+    margin-right: 1rem;
+  }
+
+  .feature-container {
+    padding: 1.5rem;
+  }
+}
