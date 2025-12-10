@@ -2,6 +2,10 @@
 sidebar_label: 'Lesson 5.4: Future Trends in Physical AI and Humanoid Robotics'
 ---
 
+import ChapterTranslator from '@site/src/components/Translation/ChapterTranslator';
+
+<ChapterTranslator>
+
 # Lesson 5.4: Future Trends in Physical AI and Humanoid Robotics
 
 ## Overview
@@ -565,3 +569,4 @@ The next steps in your robotics journey might include:
 - Pursuing research in specialized areas
 - Developing commercial robotics applications
 - Advocating for responsible AI in robotics
+</ChapterTranslator>

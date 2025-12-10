@@ -3,7 +3,11 @@
   "extends": "@docusaurus/tsconfig",
   "compilerOptions": {
     "baseUrl": ".",
-    "ignoreDeprecations": "6.0"
+    "paths": {
+      "@site/*": ["./*"],
+      "@theme/*": ["./src/theme/*"],
+      "@docusaurus/*": ["./node_modules/@docusaurus/*"]
+    }
   },
   "exclude": [".docusaurus", "build"]
 }

@@ -3,7 +3,12 @@ sidebar_position: 1
 title: "Introduction to ROS 2 Fundamentals"
 ---
 
-# Introduction to ROS 2 Fundamentals
+import ChapterTranslator from '@site/src/components/Translation/ChapterTranslator';
+
+<ChapterTranslator>
+
+ # Introduction to ROS 2 Fundamentals
+
 
 ## Overview
 This lesson introduces the core concepts of ROS 2, including its architecture, communication mechanisms (nodes, topics, services), and command-line tools. This lesson will establish the foundational knowledge for building robot applications.
@@ -62,3 +67,5 @@ ROS 2 provides several command-line tools to interact with the system:
 
 ## Summary
 This lesson introduced the fundamental concepts of ROS 2. Understanding these core concepts is essential for building more complex robotic applications. In the next lesson, we'll dive deeper into creating and managing ROS 2 nodes, topics, and services in practice.
+
+</ChapterTranslator>

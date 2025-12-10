@@ -1,112 +1,77 @@
-# Research: Physical AI & Humanoid Robotics Book Platform Backend
+# Research: Urdu Translation Feature
 
 ## Overview
-This research document addresses all technical unknowns and decisions required for implementing the Physical AI & Humanoid Robotics book platform backend, following the feature specification and project constitution.
+This research document addresses all technical unknowns and decisions required for implementing the Urdu Translation Feature for the Docusaurus book platform, following the feature specification and project constitution.
 
-## Decision: FastAPI Framework for Backend
-**Rationale**: FastAPI was chosen as the primary framework based on the project constitution requirements and its excellent features for building APIs:
-- Async/await support for high-performance applications
-- Built-in automatic API documentation (Swagger/OpenAPI)
-- Pydantic integration for data validation
-- Type hints support for better code quality
-- Fast development cycle with hot reload
-- Strong community and ecosystem
-
+## Decision: Translation API Provider
+**Rationale**: Google Gemini API was selected as the translation provider because it offers high-quality translation capabilities with good support for Urdu language. The gemini-2.0-flash model provides fast responses suitable for real-time translation.
 **Alternatives considered**:
-- Flask: More mature but lacks async support by default
-- Django: Heavy framework, overkill for API-only backend
-- Express.js: Node.js alternative but Python preferred per constitution
+- OpenAI GPT models (more expensive for translation tasks)
+- Azure Translator (requires additional setup)
+- Local translation models (less accurate for Urdu)
 
-## Decision: Database Strategy - Neon Serverless Postgres + Qdrant Vector Store
-**Rationale**: The constitution requires both Neon Serverless Postgres and Qdrant Cloud, which represents a hybrid approach optimal for this use case:
-- Neon Postgres for structured data (users, content metadata, relationships)
-- Qdrant for vector embeddings and semantic search
-- Serverless Postgres provides automatic scaling
-- Qdrant Cloud provides managed vector search capabilities
-
+## Decision: Frontend Implementation Approach
+**Rationale**: React components with hooks provide the best integration with Docusaurus MDX pages while maintaining clean state management for the translation functionality. The approach allows for seamless toggling between English and Urdu content.
 **Alternatives considered**:
-- Single MongoDB: Could store both structured and vector data but less optimal for either
-- Single Postgres with pgvector: Possible but Qdrant is purpose-built for vector search
-- Elasticsearch: Good for search but not as good for structured data relationships
+- Pure JavaScript implementation (less maintainable)
+- Custom Docusaurus plugin (more complex to implement)
+- Server-side rendering of translations (would require page reloads)
 
-## Decision: Authentication Strategy - JWT-based
-**Rationale**: JWT tokens were selected for authentication based on the constitution requirements and industry best practices:
-- Stateless authentication suitable for API
-- Good for scalability
-- Standard approach with good library support
-- Refresh token strategy for security
-
+## Decision: Backend Integration Pattern
+**Rationale**: Creating a dedicated translation API endpoint following FastAPI best practices ensures clean separation from existing RAG functionality while maintaining compatibility with the existing architecture.
 **Alternatives considered**:
-- Session-based: Requires server-side storage, less scalable
-- OAuth only: Too complex for this use case, though could be added later
+- Adding translation to existing RAG endpoints (would complicate the API)
+- Separate microservice (over-engineering for this feature scope)
 
-## Decision: Document Ingestion Pipeline Architecture
-**Rationale**: Queue-based background processing with Celery or similar was selected for handling document ingestion:
-- Handles large documents without blocking API
-- Provides retry logic for failed processing
-- Tracks ingestion status for admin visibility
-- Scales independently of API
-
+## Decision: Content Extraction Method
+**Rationale**: Using React ref to extract content from MDX pages provides direct access to the rendered content while maintaining compatibility with Docusaurus structure.
 **Alternatives considered**:
-- Direct processing: Would block API for large documents
-- Simple threading: Less robust than dedicated queue system
+- Parsing MDX source files (would require server-side changes)
+- Using DOM APIs (less reliable across different page structures)
 
-## Decision: Rate Limiting and API Quota Enforcement
-**Rationale**: Middleware-based approach with Redis for tracking usage was selected:
-- Centralized enforcement at the API level
-- Efficient tracking of usage across requests
-- Configurable limits per user/tier
-- Integration with JWT authentication
-
+## Decision: State Management Strategy
+**Rationale**: React hooks with local component state provide efficient state management for translation toggling without requiring global state management solutions.
 **Alternatives considered**:
-- Database tracking: Too slow for rate limiting
-- In-memory tracking: Doesn't work with multiple instances
+- Redux or Context API (overhead for simple state management)
+- URL parameters (would complicate navigation)
 
-## Decision: Embedding and LLM Strategy
-**Rationale**: Using free/local alternatives for both embeddings and LLM responses:
-- OpenAI text-embedding-3-small (free tier) or local embedding models for vector search
-- Free LLM options (Ollama, Hugging Face models) for RAG responses and chat functionality
-- Focus on completely free solutions to avoid any costs
-
+## Decision: Styling Approach
+**Rationale**: CSS modules provide scoped styling that prevents conflicts with existing Docusaurus styles while allowing for Urdu-specific text styling (RTL support).
 **Alternatives considered**:
-- OpenAI/Paid APIs: Costs money, avoiding for free project
-- Local models: More resource intensive but completely free
-- Hugging Face free tier: Good balance of performance and cost (free)
+- Global CSS (risk of style conflicts)
+- Inline styles (less maintainable)
+- Styled-components (additional dependency)
 
-## Decision: File Processing Strategy
-**Rationale**: Server-side processing of multiple formats (Markdown, HTML, PDF, raw text) was selected:
-- Admin-only upload ensures content quality
-- Multiple format support for flexibility
-- Chunking with 300-500 token windows per constitution
+## Technical Considerations
 
-**Alternatives considered**:
-- Client-side processing: Less secure, less reliable
-- Third-party services: Less control over processing
+### Performance
+- Translation API calls should be cached to prevent repeated translations of the same content
+- Loading states should be implemented to provide user feedback during translation
+- Error handling should gracefully degrade when API limits are reached
 
-## Decision: Caching Strategy
-**Rationale**: Multi-level caching with Redis was selected for performance:
-- API response caching for frequently accessed content
-- Embedding result caching
-- Database query result caching
+### Security
+- API keys should be properly secured on the backend
+- Input sanitization should prevent injection attacks
+- Rate limiting should prevent abuse of the translation service
 
-**Alternatives considered**:
-- No caching: Would impact performance significantly
-- Application memory caching: Doesn't work across instances
+### Accessibility
+- Urdu text should be properly rendered with correct font support
+- Screen readers should be able to interpret Urdu content
+- Translation controls should be accessible via keyboard navigation
 
-## Decision: Testing Strategy
-**Rationale**: Comprehensive testing with pytest was selected:
-- Unit tests for individual components
-- Integration tests for API endpoints
-- Contract tests for API specifications
-- 90%+ coverage target per constitution
+### Integration
+- The feature must work seamlessly with existing Docusaurus navigation
+- Translation state should not interfere with existing page functionality
+- Components must be compatible with Docusaurus lifecycle methods
 
-## Decision: Deployment Strategy
-**Rationale**: Container-based deployment was selected:
-- Docker for consistent environments
-- Environment variables for configuration
-- Support for cloud deployment platforms
-- Easy scaling and management
+## Integration with Existing Architecture
 
-**Alternatives considered**:
-- Direct server deployment: Less portable and harder to manage
-- Serverless functions: May not be suitable for long-running ingestion tasks
+### Compatibility with RAG System
+- Translation endpoint will be added as a separate router to avoid conflicts
+- Existing RAG functionality remains unchanged
+- Same authentication and rate limiting patterns will be applied
+
+### Docusaurus Integration
+- Components will be designed to work with MDX pages
+- No changes required to Docusaurus configuration
+- CSS modules ensure styling doesn't conflict with existing theme

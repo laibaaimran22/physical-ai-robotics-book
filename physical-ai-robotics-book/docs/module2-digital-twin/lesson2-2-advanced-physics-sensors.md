@@ -3,6 +3,10 @@ sidebar_position: 2
 title: "Advanced Physics and Sensor Simulation in Gazebo"
 ---
 
+import ChapterTranslator from '@site/src/components/Translation/ChapterTranslator';
+
+<ChapterTranslator>
+
 # Advanced Physics and Sensor Simulation in Gazebo
 
 ## Overview
@@ -102,8 +106,8 @@ LiDAR sensors are crucial for navigation and mapping:
         <horizontal>
           <samples>720</samples>        <!-- Number of rays -->
           <resolution>1</resolution>     <!-- Resolution -->
-          <min_angle>-3.14159</min_angle> <!-- Min angle (-180°) -->
-          <max_angle>3.14159</max_angle>  <!-- Max angle (180°) -->
+          <min_angle>-3.14159</min_angle> <!-- Min angle (-180ï¿½) -->
+          <max_angle>3.14159</max_angle>  <!-- Max angle (180ï¿½) -->
         </horizontal>
       </scan>
       <range>
@@ -191,7 +195,7 @@ IMU sensors provide orientation and acceleration data:
         <x>
           <noise type="gaussian">
             <mean>0.0</mean>
-            <stddev>0.017</stddev>  <!-- ~0.017 m/s² stddev -->
+            <stddev>0.017</stddev>  <!-- ~0.017 m/sï¿½ stddev -->
           </noise>
         </x>
         <y>
@@ -319,3 +323,4 @@ ros2 topic echo /imu/data sensor_msgs/msg/Imu
 
 ## Summary
 This lesson covered advanced physics configuration and sensor simulation in Gazebo. You learned how to implement realistic physics properties and integrate various sensors to create a comprehensive simulation environment. In the next lesson, we'll explore high-fidelity rendering and human-robot interaction in Unity.
+</ChapterTranslator>
