@@ -1,12 +1,41 @@
+import os
 from datetime import datetime
+from typing import Optional, List, Dict, Any
+
+import openai
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Optional, List, Dict, Any
 
 from .api.rag import router as rag_router
+from .api.book import router as book_router
 from .api.ingest import router as ingest_router
 from .config.settings import settings
+from .agent.agent_runner import agent, Runner, AgentRequest
+
+# Load environment variables
+load_dotenv()
+
+# Initialize the OpenAI client with Google Gemini API
+GEMINI_API_KEY = (os.getenv("GOOGLE_GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY") or
+                 settings.GOOGLE_GEMINI_API_KEY or settings.GEMINI_API_KEY)
+
+if not GEMINI_API_KEY:
+    print("WARNING: No GEMINI_API_KEY found. Chatbot functionality will not work.")
+    # In production environments, we should fail if no API key is provided
+    if os.getenv("ENVIRONMENT", "development").lower() != "production":
+        raise ValueError("GOOGLE_GEMINI_API_KEY or GEMINI_API_KEY environment variable or setting is required")
+    else:
+        # For production, we might want to allow the app to start even without the API key
+        # and handle the error gracefully in the endpoints
+        print("Running in production without GEMINI_API_KEY - chatbot will be disabled")
+        GEMINI_API_KEY = ""
+
+client = openai.AsyncOpenAI(
+    api_key=GEMINI_API_KEY,
+    base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+)
 
 # Create FastAPI app instance
 app = FastAPI(
@@ -17,6 +46,15 @@ app = FastAPI(
     docs_url="/api/v1/docs" if settings.ENVIRONMENT != "production" else None,
     redoc_url="/api/v1/redoc" if settings.ENVIRONMENT != "production" else None,
 )
+
+
+# Pydantic model for chat requests
+class ChatRequest(BaseModel):
+    message: str
+
+
+# Initialize the agent once (not on every request) - using the agent from agent_runner
+# The agent is already defined in the imported module
 
 # Add CORS middleware
 app.add_middleware(
@@ -31,7 +69,39 @@ app.add_middleware(
 
 # Include API routers
 app.include_router(rag_router, prefix="/api/v1", tags=["RAG"])
+app.include_router(book_router, prefix="/api/v1", tags=["Book"])
 app.include_router(ingest_router, prefix="/api/v1", tags=["Ingestion"])
+
+
+@app.post("/chat")
+async def chat_endpoint(request: ChatRequest):
+    """
+    Chat endpoint that accepts a user message and returns the agent's response.
+    Accepts JSON body: { "message": "user query" }
+    Returns the agent's final_output to the frontend.
+    """
+    try:
+        # Run the agent using Runner.run_sync()
+        result = Runner.run_sync(starting_agent=agent, input_message=request.message)
+        return {"response": result.final_output}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing chat request: {str(e)}")
+
+
+@app.post("/agent-chat")
+async def agent_chat_endpoint(request: AgentRequest):
+    """
+    Agent chat endpoint that accepts a user message and returns the agent's response.
+    Accepts JSON body: { "message": "user message" }
+    Returns: { "reply": "agent response" }
+    """
+    try:
+        # Run the agent using Runner.run_sync()
+        result = Runner.run_sync(starting_agent=agent, input_message=request.message)
+        return {"reply": result.final_output}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing agent chat request: {str(e)}")
+
 
 @app.get("/health")
 async def health_check():
@@ -61,7 +131,6 @@ async def health_check():
             "vector_store": vector_store_health
         }
     }
-
 @app.get("/")
 async def root():
     """Root endpoint with basic information about the API."""
@@ -71,6 +140,7 @@ async def root():
         "docs": "/api/v1/docs",
         "health": "/health"
     }
+
 
 @app.get("/api/v1/status")
 async def api_status():
