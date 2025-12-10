@@ -23,7 +23,7 @@ class EmbeddingDocument(Base, TimestampMixin):
     lesson_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("lessons.id"))
     lesson_section_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("lesson_sections.id"))
 
-    # Relationships
-    chapter: Mapped[Optional["Chapter"]] = relationship("Chapter", back_populates="embedding_documents")
-    lesson: Mapped[Optional["Lesson"]] = relationship("Lesson", back_populates="embedding_documents")
-    lesson_section: Mapped[Optional["LessonSection"]] = relationship("LessonSection", back_populates="embedding_documents")
+    # Relationships - commented out to avoid circular import issues
+    # chapter: Mapped[Optional["Chapter"]] = relationship("Chapter", back_populates="embedding_documents")
+    # lesson: Mapped[Optional["Lesson"]] = relationship("Lesson", back_populates="embedding_documents")
+    # lesson_section: Mapped[Optional["LessonSection"]] = relationship("LessonSection", back_populates="embedding_documents")

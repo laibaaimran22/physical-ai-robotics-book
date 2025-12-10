@@ -28,9 +28,18 @@ class Settings(BaseSettings):
     # Optional API Keys
     COHERE_API_KEY: Optional[str] = Field(default=None, alias="COHERE_API_KEY")
     OPENAI_API_KEY: Optional[str] = Field(default=None, alias="OPENAI_API_KEY")
+    HUGGINGFACE_API_KEY: Optional[str] = Field(default=None, alias="HUGGINGFACE_API_KEY")
+    GOOGLE_GEMINI_API_KEY: Optional[str] = Field(default=None, alias="GOOGLE_GEMINI_API_KEY")
+    # For backward compatibility with existing .env files
+    GEMINI_API_KEY: Optional[str] = Field(default=None, alias="GEMINI_API_KEY")
+
+    # Ollama Configuration
+    OLLAMA_BASE_URL: str = Field(default="http://localhost:11434", alias="OLLAMA_BASE_URL")
+    OLLAMA_MODEL: str = "llama2"
 
     # LLM Configuration
     LLM_MODEL: str = "gpt-3.5-turbo"
+    GEMINI_MODEL_NAME: str = "gemini-pro-latest"
     TEMPERATURE: float = 0.3
 
     # Embedding Configuration

@@ -6,7 +6,7 @@ import asyncio
 import logging
 
 from ..core.embedding_client import embedding_client
-from ..core.vector_store import vector_store
+from ..core.vector_store import get_vector_store
 from ..models.rag_query import RAGQuery
 from ..models.chat_history import ChatHistory
 from ..database.crud.rag_query import create_rag_query
@@ -40,6 +40,7 @@ class RAGService:
         query_embedding = embedding_client.generate_embedding(query)
 
         # Search for similar content in the vector store
+        vector_store = get_vector_store()
         similar_chunks = await vector_store.search_similar(
             query_vector=query_embedding,
             limit=top_k
@@ -64,8 +65,11 @@ class RAGService:
             Answer:
             """
 
-            # Generate response using OpenAI (or fallback)
+            # Generate response using OpenAI, Google Gemini, or fallback
             import openai
+            response_text = ""
+
+            # Check if we have OpenAI API key first
             if settings.OPENAI_API_KEY:
                 try:
                     client = openai.AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
@@ -81,9 +85,37 @@ class RAGService:
                     response_text = response.choices[0].message.content
                 except Exception as e:
                     logger.error(f"OpenAI request failed: {e}")
+                    response_text = ""
+
+            # If no OpenAI key or OpenAI failed, try Gemini
+            if not response_text and (settings.GOOGLE_GEMINI_API_KEY or settings.GEMINI_API_KEY):
+                try:
+                    gemini_api_key = settings.GOOGLE_GEMINI_API_KEY or settings.GEMINI_API_KEY
+                    client = openai.AsyncOpenAI(
+                        api_key=gemini_api_key,
+                        base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
+                    )
+
+                    # Use the specific model name from settings or default to gemini-pro
+                    model_name = settings.GEMINI_MODEL_NAME or "gemini-pro"
+
+                    response = await client.chat.completions.create(
+                        model=model_name,
+                        messages=[
+                            {"role": "system", "content": "You are an expert assistant for the Physical AI and Humanoid Robotics book. Answer questions based only on the provided context."},
+                            {"role": "user", "content": prompt}
+                        ],
+                        max_tokens=500,
+                        temperature=settings.TEMPERATURE
+                    )
+                    response_text = response.choices[0].message.content
+                except Exception as e:
+                    logger.error(f"Gemini API request failed: {e}")
                     # Fallback response
                     response_text = f"I found some relevant information but couldn't generate a complete response: {str(e)}"
-            else:
+
+            # If neither API worked, use fallback
+            if not response_text:
                 # Simple fallback response when no LLM is configured
                 response_text = f"Based on the context provided, I found {len(similar_chunks)} relevant pieces of information. In a full implementation with an LLM configured, I would generate a comprehensive answer for you."
 
@@ -140,6 +172,7 @@ class RAGService:
         query_embedding = embedding_client.generate_embedding(enhanced_query)
 
         # Search for similar content in the vector store
+        vector_store = get_vector_store()
         similar_chunks = await vector_store.search_similar(
             query_vector=query_embedding,
             limit=5  # Get top 5 similar chunks
@@ -162,8 +195,11 @@ class RAGService:
         Answer:
         """
 
-        # Generate response using OpenAI (or fallback)
+        # Generate response using OpenAI, Google Gemini, or fallback
         import openai
+        response_text = ""
+
+        # Check if we have OpenAI API key first
         if settings.OPENAI_API_KEY:
             try:
                 client = openai.AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
@@ -179,9 +215,37 @@ class RAGService:
                 response_text = response.choices[0].message.content
             except Exception as e:
                 logger.error(f"OpenAI request failed: {e}")
+                response_text = ""
+
+        # If no OpenAI key or OpenAI failed, try Gemini
+        if not response_text and (settings.GOOGLE_GEMINI_API_KEY or settings.GEMINI_API_KEY):
+            try:
+                gemini_api_key = settings.GOOGLE_GEMINI_API_KEY or settings.GEMINI_API_KEY
+                client = openai.AsyncOpenAI(
+                    api_key=gemini_api_key,
+                    base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
+                )
+
+                # Use the specific model name from settings or default to gemini-pro
+                model_name = settings.GEMINI_MODEL_NAME or "gemini-pro"
+
+                response = await client.chat.completions.create(
+                    model=model_name,
+                    messages=[
+                        {"role": "system", "content": "You are an expert assistant for the Physical AI and Humanoid Robotics book. Answer questions based on the user-selected text and additional context provided."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    max_tokens=500,
+                    temperature=settings.TEMPERATURE
+                )
+                response_text = response.choices[0].message.content
+            except Exception as e:
+                logger.error(f"Gemini API request failed: {e}")
                 # Fallback response
                 response_text = f"I found relevant information but couldn't generate a complete response: {str(e)}"
-        else:
+
+        # If neither API worked, use fallback
+        if not response_text:
             # Simple fallback response when no LLM is configured
             response_text = f"Based on the selected text and similar content, I found {len(similar_chunks)} relevant pieces of information. In a full implementation with an LLM configured, I would generate a comprehensive answer for you."
 
@@ -236,6 +300,7 @@ class RAGService:
         query_embedding = embedding_client.generate_embedding(query)
 
         # Search for similar content in the vector store
+        vector_store = get_vector_store()
         results = await vector_store.search_similar(
             query_vector=query_embedding,
             limit=top_k,
@@ -270,6 +335,7 @@ class RAGService:
         query_embedding = embedding_client.generate_embedding(query)
 
         # Perform hybrid search using both semantic and keyword queries
+        vector_store = get_vector_store()
         results = await vector_store.search_similar(
             query_vector=query_embedding,
             limit=top_k,

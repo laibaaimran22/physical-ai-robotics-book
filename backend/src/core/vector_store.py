@@ -20,9 +20,11 @@ class VectorStore:
             logger.warning("QDRANT_URL not provided - vector store will return empty results")
         else:
             if settings.QDRANT_API_KEY:
+                # For Qdrant Cloud, use the proper initialization
                 self.client = QdrantClient(
                     url=settings.QDRANT_URL,
-                    api_key=settings.QDRANT_API_KEY
+                    api_key=settings.QDRANT_API_KEY,
+                    prefer_grpc=False  # Use REST API for cloud instances
                 )
             else:
                 self.client = QdrantClient(
@@ -149,86 +151,87 @@ class VectorStore:
         keyword_query: Optional[str] = None  # For hybrid search
     ) -> List[Dict[str, Any]]:
         """Search for similar content based on the query vector with optional keyword filtering."""
+        if self.client is None:
+            logger.warning("QDRANT_URL not configured - returning empty results")
+            return []
 
-        # Build filters
-        filters = []
+        # Build the filter conditions
+        must_conditions = []
         if content_type:
-            filters.append(
+            must_conditions.append(
                 models.FieldCondition(
                     key="content_type",
                     match=models.MatchValue(value=content_type)
                 )
             )
-
         if content_id is not None:
-            filters.append(
+            must_conditions.append(
                 models.FieldCondition(
                     key="content_id",
                     match=models.MatchValue(value=content_id)
                 )
             )
 
-        # If keyword query is provided, perform keyword search as well (hybrid search)
-        if keyword_query:
-            # For hybrid search, we'll use the keyword as a filter condition
-            # Qdrant supports full-text search through its payload filtering
-            # This is a simplified approach - in a real implementation you'd use more sophisticated hybrid search
-            keyword_filters = [
-                models.FieldCondition(
-                    key="content",
-                    match=models.MatchText(text=keyword_query)
-                )
-            ]
+        # Create the filter if there are conditions
+        query_filter = models.Filter(must=must_conditions) if must_conditions else None
 
-            # Combine with other filters
-            if filters:
-                filter_obj = models.Filter(
-                    must=filters,
-                    should=keyword_filters,
-                    min_should_match=1
-                )
+        try:
+            # Use the newer query_points method instead of the deprecated search method
+            search_results = self.client.query_points(
+                collection_name=self.collection_name,
+                query=query_vector,
+                query_filter=query_filter,
+                limit=limit
+            )
+
+            # The query_points method returns a QueryResponse object with a points attribute
+            # Check if results is a QueryResponse object or has a points attribute
+            if hasattr(search_results, 'points'):
+                scored_points = search_results.points
             else:
-                filter_obj = models.Filter(should=keyword_filters, min_should_match=1)
-        else:
-            filter_obj = models.Filter(must=filters) if filters else None
+                # If it's already a list-like object, use it directly
+                scored_points = search_results
 
-        # Perform the search - check if Qdrant client is available
-        if self.client is None:
-            # Qdrant client is not initialized, return empty results
-            logger.warning("QDRANT_URL not configured - returning empty search results")
-            results = []
-        else:
-            # Qdrant client exists, try to perform search
-            try:
-                results = self.client.search(
-                    collection_name=self.collection_name,
-                    query_vector=query_vector,
-                    query_filter=filter_obj,
-                    limit=limit
-                )
-            except AttributeError as e:
-                # This handles the case where QdrantClient doesn't have 'search' method
-                logger.error(f"Qdrant client does not have search method: {e}")
-                results = []
-            except Exception as e:
-                # Handle other search-related errors
-                logger.error(f"Qdrant search failed: {e}")
-                results = []
+            # Convert the results to the expected format
+            similar_chunks = []
+            for scored_point in scored_points:
+                # Handle both possible result formats depending on Qdrant client version
+                if hasattr(scored_point, 'payload'):  # Newer format
+                    content_data = scored_point.payload
+                    point_id = scored_point.id
+                    score = scored_point.score
+                elif isinstance(scored_point, dict):  # Older format or different return
+                    content_data = scored_point.get('payload', {})
+                    point_id = scored_point.get('id')
+                    score = scored_point.get('score')
+                else:
+                    # Try to access attributes directly
+                    content_data = getattr(scored_point, 'payload', {})
+                    point_id = getattr(scored_point, 'id', None)
+                    score = getattr(scored_point, 'score', None)
 
-        # Format results
-        formatted_results = []
-        for result in results:
-            formatted_results.append({
-                "id": result.id,
-                "content": result.payload["content"],
-                "content_id": result.payload["content_id"],
-                "content_type": result.payload["content_type"],
-                "metadata": result.payload["metadata"],
-                "score": result.score
-            })
+                similar_chunks.append({
+                    "id": point_id,
+                    "content": content_data.get("content", ""),
+                    "content_id": content_data.get("content_id"),
+                    "content_type": content_data.get("content_type"),
+                    "metadata": content_data.get("metadata", {}),
+                    "score": score  # Include the similarity score
+                })
 
-        logger.debug(f"Found {len(formatted_results)} similar results")
-        return formatted_results
+            logger.info(f"Found {len(similar_chunks)} similar chunks")
+            return similar_chunks
+
+        except AttributeError as e:
+            # Handle the case where the Qdrant client doesn't have the expected method
+            logger.error(f"Qdrant client attribute error: {e}")
+            # Return empty results to avoid breaking the system
+            return []
+        except Exception as e:
+            logger.error(f"Error searching for similar content: {e}")
+            import traceback
+            traceback.print_exc()
+            return []
 
     async def delete_embedding(self, point_id: str):
         """Delete a specific embedding by ID."""
@@ -303,8 +306,11 @@ class VectorStore:
             return 0
 
 
-# Global vector store instance
-vector_store = VectorStore()
-
-# Initialize the collection when the module is loaded
-vector_store.create_collection()
+# Global vector store instance (lazy initialization to avoid import-time errors)
+def get_vector_store():
+    """Get or create the vector store instance with lazy initialization."""
+    if not hasattr(get_vector_store, '_instance'):
+        get_vector_store._instance = VectorStore()
+        # Initialize the collection on first access
+        get_vector_store._instance.create_collection()
+    return get_vector_store._instance

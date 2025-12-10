@@ -19,4 +19,3 @@ class Lesson(Base, TimestampMixin):
     # Relationships
     chapter: Mapped["Chapter"] = relationship("Chapter", back_populates="lessons")
     lesson_sections: Mapped[List["LessonSection"]] = relationship("LessonSection", back_populates="lesson", cascade="all, delete-orphan")
-    user_progress: Mapped[List["UserProgress"]] = relationship("UserProgress", back_populates="lesson")  # Optional feature
