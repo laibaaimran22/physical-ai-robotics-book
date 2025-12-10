@@ -1,21 +1,28 @@
 .chatbotContainer {
   position: fixed;
-  bottom: 80px;
+  bottom: 90px;
   right: 20px;
-  width: 380px;
-  height: 500px;
+  width: 340px;
+  height: 480px;
   background: white;
-  border: 1px solid #ddd;
+  border: 1px solid var(--ifm-color-emphasis-300);
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
   z-index: 1000;
   font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+[data-theme='dark'] .chatbotContainer {
+  background: var(--ifm-background-surface-color);
+  border-color: var(--ifm-color-emphasis-700);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
 }
 
 .chatbotHeader {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--ifm-color-primary) 0%, var(--ifm-color-primary-dark) 100%);
   color: white;
   padding: 12px 16px;
   border-top-left-radius: 12px;
@@ -24,11 +31,13 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .chatbotHeader h3 {
   margin: 0;
   font-size: 1.1em;
+  font-weight: 600;
 }
 
 .headerActions {
@@ -52,33 +61,42 @@
 
 .chatbotMessages {
   flex: 1;
-  padding: 15px;
+  padding: 12px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  background: #f9f9f9;
+  gap: 10px;
+  background: var(--ifm-background-color);
 }
 
 .welcomeMessage {
   text-align: center;
-  color: #666;
-  padding: 20px;
+  color: var(--ifm-color-emphasis-600);
+  padding: 15px;
   font-style: italic;
+  font-size: 0.9em;
+  line-height: 1.5;
 }
 
 .welcomeMessage ul {
   text-align: left;
   display: inline-block;
-  padding-left: 20px;
+  padding-left: 15px;
+  margin: 8px 0;
+}
+
+.welcomeMessage li {
+  margin-bottom: 4px;
 }
 
 .message {
-  max-width: 80%;
-  padding: 10px 14px;
-  border-radius: 18px;
+  max-width: 85%;
+  padding: 8px 12px;
+  border-radius: 16px;
   position: relative;
   animation: fadeIn 0.3s ease-out;
+  font-size: 0.9em;
+  line-height: 1.4;
 }
 
 @keyframes fadeIn {
@@ -88,16 +106,27 @@
 
 .userMessage {
   align-self: flex-end;
-  background-color: #25c2a0;
+  background-color: var(--ifm-color-primary);
   color: white;
   border-bottom-right-radius: 4px;
+  padding: 10px 14px;
 }
 
 .assistantMessage {
   align-self: flex-start;
-  background-color: #e9ecef;
-  color: #333;
+  background-color: var(--ifm-color-emphasis-100);
+  color: var(--ifm-color-emphasis-900);
   border-bottom-left-radius: 4px;
+  padding: 10px 14px;
+}
+
+[data-theme='dark'] .userMessage {
+  background-color: var(--ifm-color-primary-light);
+}
+
+[data-theme='dark'] .assistantMessage {
+  background-color: var(--ifm-color-emphasis-800);
+  color: var(--ifm-color-emphasis-0);
 }
 
 .messageContent {
@@ -152,50 +181,56 @@
 
 .chatbotInputForm {
   display: flex;
-  padding: 12px;
+  padding: 10px;
   background: white;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--ifm-color-emphasis-200);
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .chatbotInput {
   flex: 1;
-  padding: 10px 12px;
-  border: 1px solid #ddd;
-  border-radius: 20px;
-  font-size: 14px;
+  padding: 8px 12px;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 18px;
+  font-size: 13px;
   outline: none;
   transition: border-color 0.2s;
 }
 
 .chatbotInput:focus {
-  border-color: #25c2a0;
+  border-color: var(--ifm-color-primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(var(--ifm-color-primary-rgb), 0.2);
 }
 
 .chatbotSubmitButton {
-  background: #25c2a0;
+  background: var(--ifm-color-primary);
   color: white;
   border: none;
-  border-radius: 24px;
+  border-radius: 20px;
   padding: 8px 16px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
-  transition: background-color 0.2s;
+  font-size: 13px;
+  transition: all 0.2s ease;
   align-self: flex-end;
-  margin-top: 8px;
+  margin-top: 6px;
+  min-width: 70px;
+  font-weight: 600;
 }
 
 .chatbotSubmitButton:disabled {
-  background: #cccccc;
+  background: var(--ifm-color-emphasis-300);
   cursor: not-allowed;
 }
 
 .chatbotSubmitButton:not(:disabled):hover {
-  background: #21af90;
+  background: var(--ifm-color-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .chatbotToggle {
@@ -205,26 +240,45 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: #25c2a0;
+  background: linear-gradient(135deg, var(--ifm-color-primary) 0%, var(--ifm-color-primary-dark) 100%);
   color: white;
-  border: none;
+  border: 2px solid white;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
   z-index: 1001;
   transition: all 0.3s ease;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(37, 194, 160, 0.4);
+  }
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 15px rgba(37, 194, 160, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(37, 194, 160, 0);
+  }
 }
 
 .chatbotToggle:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  transform: scale(1.1);
+  box-shadow: 0 8px 25px rgba(37, 194, 160, 0.6);
+  animation: none;
 }
 
 .chatbotToggleOpen {
-  background: #ff6b6b;
+  background: linear-gradient(135deg, #ff6b6b, #ff5252);
+  animation: none;
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
 }
 
 .chatIcon {
@@ -237,26 +291,26 @@
 }
 
 .selectedTextPreview {
-  padding: 10px 15px;
-  background: #fff3cd;
-  border: 1px solid #ffeaa7;
-  border-radius: 4px;
-  margin: 10px 15px;
-  font-size: 0.9em;
+  padding: 8px 12px;
+  background: var(--ifm-color-warning-background);
+  border: 1px solid var(--ifm-color-warning-border);
+  border-radius: 8px;
+  margin: 8px 12px;
+  font-size: 0.85em;
 }
 
 .selectedTextPreview p {
-  margin: 0 0 8px 0;
+  margin: 0 0 6px 0;
 }
 
 .selectedTextPreview button {
-  padding: 5px 10px;
-  background: #fd79a8;
+  padding: 4px 8px;
+  background: var(--ifm-color-secondary);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 0.9em;
+  font-size: 0.85em;
 }
 
 .selectedTextPreview button:disabled {
