@@ -26,20 +26,30 @@ except ImportError:
     logger = logging.getLogger(__name__)
     logger.warning("OpenAI library not available. OpenAI features will be disabled.")
 
+# Try to import Google Generative AI, but make it optional
+try:
+    import google.generativeai as genai
+    GEMINI_AVAILABLE = True
+except ImportError:
+    GEMINI_AVAILABLE = False
+    logger = logging.getLogger(__name__)
+    logger.warning("Google Generative AI library not available. Gemini features will be disabled.")
+
 
 logger = logging.getLogger(__name__)
 
 
 class LLMClient:
-    """Client for interacting with various LLM models (OpenAI, Ollama, Hugging Face transformers)."""
+    """Client for interacting with various LLM models (OpenAI, Ollama, Hugging Face transformers, Google Gemini)."""
 
     def __init__(self):
         self.use_ollama = True  # Default to Ollama
         self.ollama_url = settings.OLLAMA_BASE_URL
-        self.model_name = settings.LLM_MODEL
+        self.model_name = settings.OLLAMA_MODEL if not settings.OPENAI_API_KEY else settings.LLM_MODEL
         self.hf_pipeline = None
         self.tokenizer = None
         self.openai_client = None
+        self.gemini_model = None
 
         # Initialize OpenAI client if available and API key is set
         if OPENAI_AVAILABLE and settings.OPENAI_API_KEY:
@@ -49,6 +59,22 @@ class LLMClient:
             except Exception as e:
                 logger.warning(f"Failed to initialize OpenAI client: {e}")
                 self.openai_client = None
+
+        # Initialize Google Gemini client if available and API key is set
+        if GEMINI_AVAILABLE and settings.GOOGLE_GEMINI_API_KEY:
+            try:
+                genai.configure(api_key=settings.GOOGLE_GEMINI_API_KEY)
+                self.gemini_model = genai.GenerativeModel(
+                    model_name=settings.GEMINI_MODEL_NAME,
+                    generation_config={
+                        "temperature": settings.TEMPERATURE,
+                        "max_output_tokens": 2048,
+                    }
+                )
+                logger.info(f"Initialized Google Gemini client with model: {settings.GEMINI_MODEL_NAME}")
+            except Exception as e:
+                logger.warning(f"Failed to initialize Google Gemini client: {e}")
+                self.gemini_model = None
 
         # Try to initialize Hugging Face model as fallback if transformers is available
         if TRANSFORMERS_AVAILABLE:
@@ -92,7 +118,28 @@ class LLMClient:
         Returns:
             Generated response text
         """
-        # First try OpenAI if available
+        # First try Google Gemini if available
+        if self.gemini_model:
+            try:
+                # Construct the full prompt
+                full_prompt = f"{prompt}\n\nPlease provide a helpful and accurate response."
+
+                response = self.gemini_model.generate_content(
+                    full_prompt,
+                    generation_config={
+                        "max_output_tokens": max_tokens,
+                        "temperature": temperature
+                    }
+                )
+
+                if response.text:
+                    return response.text.strip()
+                else:
+                    logger.warning("Gemini returned empty response")
+            except Exception as e:
+                logger.warning(f"Gemini request failed: {e}")
+
+        # Then try OpenAI if available
         if self.openai_client:
             try:
                 response = self.openai_client.chat.completions.create(
@@ -165,7 +212,35 @@ class LLMClient:
         Returns:
             Generated response text
         """
-        # First try OpenAI if available (it has better chat support)
+        # First try Google Gemini if available
+        if self.gemini_model:
+            try:
+                # Format the conversation for Gemini
+                formatted_conversation = ""
+                for msg in messages:
+                    role = msg.get("role", "user")
+                    content = msg.get("content", "")
+                    formatted_conversation += f"{role.capitalize()}: {content}\n"
+
+                # Add instruction for assistant response
+                full_prompt = f"{formatted_conversation}\nAssistant:"
+
+                response = self.gemini_model.generate_content(
+                    full_prompt,
+                    generation_config={
+                        "max_output_tokens": max_tokens,
+                        "temperature": temperature
+                    }
+                )
+
+                if response.text:
+                    return response.text.strip()
+                else:
+                    logger.warning("Gemini returned empty response for chat")
+            except Exception as e:
+                logger.warning(f"Gemini chat request failed: {e}")
+
+        # Then try OpenAI if available (it has better chat support)
         if self.openai_client:
             try:
                 # Convert message format to match OpenAI requirements

@@ -70,7 +70,7 @@ const Chatbot: React.FC = () => {
 
     try {
       // Determine which API endpoint to use based on context
-      const endpoint = contextText ? '/api/v1/rag/query' : '/api/v1/rag/query';
+      const endpoint = contextText ? '/api/v1/rag/query-selected' : '/api/v1/rag/query';
 
       const requestBody = contextText
         ? {

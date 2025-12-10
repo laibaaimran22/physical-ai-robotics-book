@@ -9,7 +9,10 @@ from ..models.embedding_document import EmbeddingDocument
 from ..database.crud.ingestion_job import create_ingestion_job, get_ingestion_job_by_job_id, update_ingestion_job
 from ..database.crud.embedding_document import create_embedding_document
 from ..core.embedding_client import embedding_client
-from ..core.vector_store import vector_store
+from ..core.vector_store import get_vector_store
+
+# Get the vector store instance
+vector_store = get_vector_store()
 from ..utils.file_processing import extract_text_from_file, get_file_type
 from ..utils.text_chunking import chunk_text
 from ..config.settings import settings
