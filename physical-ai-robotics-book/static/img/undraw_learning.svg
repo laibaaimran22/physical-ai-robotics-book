@@ -1,0 +1,110 @@
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bookGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#446B8A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2F4F6F;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="robotGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6B6B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E53E3E;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="knowledgeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#98FB98;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#32CD32;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="600" fill="#F0F8FF" />
+
+  <!-- Title -->
+  <text x="400" y="70" text-anchor="middle" font-family="Arial, sans-serif" font-size="36" fill="#2F4F6F" font-weight="bold">
+    Physical AI &amp; Humanoid Robotics
+  </text>
+
+  <!-- Central book with robot -->
+  <g transform="translate(400, 300)">
+    <!-- Open book -->
+    <rect x="-120" y="-100" width="240" height="180" rx="10" fill="url(#bookGradient)" stroke="#1E3A5F" stroke-width="3"/>
+    <rect x="0" y="-100" width="5" height="180" fill="#1E3A5F"/> <!-- Book spine -->
+
+    <!-- Book pages -->
+    <path d="M0,-100 Q50,-90 0,-80 Q50,-70 0,-60 Q50,-50 0,-40 Q50,-30 0,-20 Q50,-10 0,0 Q50,10 0,20 Q50,30 0,40 Q50,50 0,60 Q50,70 0,80"
+          stroke="#F0F8FF" stroke-width="2" fill="none"/>
+
+    <!-- Robot learning -->
+    <g transform="translate(100, -30)">
+      <rect x="-40" y="-80" width="80" height="100" rx="8" fill="url(#robotGradient)" stroke="#E53E3E" stroke-width="2"/>
+      <rect x="-30" y="-120" width="60" height="40" rx="10" fill="#FF9999" stroke="#E53E3E" stroke-width="2"/>
+
+      <!-- Robot eyes -->
+      <circle cx="-15" cy="-105" r="5" fill="#FFFFFF"/>
+      <circle cx="15" cy="-105" r="5" fill="#FFFFFF"/>
+      <circle cx="-15" cy="-105" r="2" fill="#000000"/>
+      <circle cx="15" cy="-105" r="2" fill="#000000"/>
+
+      <!-- Robot antenna -->
+      <line x1="0" y1="-120" x2="0" y2="-140" stroke="#808080" stroke-width="2"/>
+      <circle cx="0" cy="-145" r="4" fill="#FFD700"/>
+
+      <!-- Robot arms engaged in learning -->
+      <line x1="-40" y1="-40" x2="-70" y2="-20" stroke="#FF9999" stroke-width="8" stroke-linecap="round"/>
+      <line x1="40" y1="-40" x2="70" y2="-20" stroke="#FF9999" stroke-width="8" stroke-linecap="round"/>
+    </g>
+
+    <!-- Knowledge flow -->
+    <g opacity="0.7">
+      <circle cx="-80" cy="-60" r="8" fill="url(#knowledgeGradient)" stroke="#228B22" stroke-width="1"/>
+      <circle cx="-80" cy="-30" r="8" fill="url(#knowledgeGradient)" stroke="#228B22" stroke-width="1"/>
+      <circle cx="-80" cy="0" r="8" fill="url(#knowledgeGradient)" stroke="#228B22" stroke-width="1"/>
+      <circle cx="-80" cy="30" r="8" fill="url(#knowledgeGradient)" stroke="#228B22" stroke-width="1"/>
+      <circle cx="-80" cy="60" r="8" fill="url(#knowledgeGradient)" stroke="#228B22" stroke-width="1"/>
+
+      <!-- Arrows showing flow -->
+      <path d="M-70,-60 L-50,-60" stroke="#228B22" stroke-width="2" marker-end="url(#arrowhead)"/>
+      <path d="M-70,-30 L-50,-30" stroke="#228B22" stroke-width="2" marker-end="url(#arrowhead)"/>
+      <path d="M-70,0 L-50,0" stroke="#228B22" stroke-width="2" marker-end="url(#arrowhead)"/>
+      <path d="M-70,30 L-50,30" stroke="#228B22" stroke-width="2" marker-end="url(#arrowhead)"/>
+      <path d="M-70,60 L-50,60" stroke="#228B22" stroke-width="2" marker-end="url(#arrowhead)"/>
+    </g>
+  </g>
+
+  <!-- Knowledge nodes -->
+  <g transform="translate(150, 400)">
+    <circle r="30" fill="url(#knowledgeGradient)" stroke="#228B22" stroke-width="3"/>
+    <text x="0" y="5" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#2F4F6F" font-weight="bold">AI</text>
+  </g>
+
+  <g transform="translate(300, 450)">
+    <circle r="30" fill="url(#knowledgeGradient)" stroke="#228B22" stroke-width="3"/>
+    <text x="0" y="5" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#2F4F6F" font-weight="bold">ROS</text>
+  </g>
+
+  <g transform="translate(500, 450)">
+    <circle r="30" fill="url(#knowledgeGradient)" stroke="#228B22" stroke-width="3"/>
+    <text x="0" y="5" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#2F4F6F" font-weight="bold">ML</text>
+  </g>
+
+  <g transform="translate(650, 400)">
+    <circle r="30" fill="url(#knowledgeGradient)" stroke="#228B22" stroke-width="3"/>
+    <text x="0" y="5" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#2F4F6F" font-weight="bold">HRI</text>
+  </g>
+
+  <!-- Connecting lines -->
+  <line x1="180" y1="400" x2="270" y2="435" stroke="#228B22" stroke-width="2" stroke-dasharray="5,5"/>
+  <line x1="330" y1="450" x2="470" y2="450" stroke="#228B22" stroke-width="2" stroke-dasharray="5,5"/>
+  <line x1="530" y1="450" x2="620" y2="400" stroke="#228B22" stroke-width="2" stroke-dasharray="5,5"/>
+
+  <!-- Definition of arrowhead marker -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7"
+            refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#228B22" />
+    </marker>
+  </defs>
+
+  <!-- Description -->
+  <text x="400" y="550" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#2F4F6F">
+    Learning and Growing in Physical AI &amp; Robotics
+  </text>
+</svg>
