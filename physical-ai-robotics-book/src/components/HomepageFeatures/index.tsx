@@ -1,4 +1,4 @@
-import type {ReactNode} from 'react';
+import React, { type ReactNode } from 'react';
 import clsx from 'clsx';
 import Heading from '@theme/Heading';
 import styles from './styles.module.css';
@@ -11,32 +11,32 @@ type FeatureItem = {
 
 const FeatureList: FeatureItem[] = [
   {
-    title: 'Easy to Use',
-    Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
+    title: 'Physical AI Fundamentals',
+    Svg: require('@site/static/img/undraw_robotics.svg').default,
     description: (
       <>
-        Docusaurus was designed from the ground up to be easily installed and
-        used to get your website up and running quickly.
+        Explore the core principles of Physical AI - the integration of artificial intelligence with physical systems,
+        embodied cognition, and real-world interaction. Learn how AI agents can understand and manipulate the physical world.
       </>
     ),
   },
   {
-    title: 'Focus on What Matters',
-    Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
+    title: 'Humanoid Robotics',
+    Svg: require('@site/static/img/undraw_learning.svg').default,
     description: (
       <>
-        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-        ahead and move your docs into the <code>docs</code> directory.
+        Master the design, control, and intelligence of humanoid robots. From kinematics and dynamics to gait planning,
+        sensor integration, and human-robot interaction for anthropomorphic systems.
       </>
     ),
   },
   {
-    title: 'Powered by React',
-    Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
+    title: 'ROS2 & AI Integration',
+    Svg: require('@site/static/img/undraw_ai_brain.svg').default,
     description: (
       <>
-        Extend or customize your website layout by reusing React. Docusaurus can
-        be extended while reusing the same header and footer.
+        Learn how to integrate modern AI techniques with ROS2 frameworks. Build intelligent robotic systems using
+        Python agents, perception systems, and cognitive architectures.
       </>
     ),
   },
@@ -48,9 +48,9 @@ function Feature({title, Svg, description}: FeatureItem) {
       <div className="text--center">
         <Svg className={styles.featureSvg} role="img" />
       </div>
-      <div className="text--center padding-horiz--md">
-        <Heading as="h3">{title}</Heading>
-        <p>{description}</p>
+      <div className={clsx('text--center padding-horiz--md', styles['feature-container'])}>
+        <Heading as="h3" className={styles['feature-title']}>{title}</Heading>
+        <p className={styles['feature-description']}>{description}</p>
       </div>
     </div>
   );
