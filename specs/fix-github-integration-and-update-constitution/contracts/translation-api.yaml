@@ -1,0 +1,176 @@
+openapi: 3.0.3
+info:
+  title: Urdu Translation API
+  description: API for translating content to Urdu using Google Gemini
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+    description: Development server
+paths:
+  /api/v1/translate:
+    post:
+      summary: Translate content to Urdu
+      description: Translates the provided content from English to Urdu using Google Gemini API
+      operationId: translate_content
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TranslationRequest'
+            examples:
+              example1:
+                summary: English to Urdu translation request
+                value:
+                  content: "This is a sample text that needs to be translated to Urdu."
+                  source_language: "en"
+                  target_language: "ur"
+      responses:
+        '200':
+          description: Successful translation response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TranslationResponse'
+              examples:
+                example1:
+                  summary: Successful Urdu translation
+                  value:
+                    translated_content: "یہ ایک نمونہ متن ہے جسے اردو میں ترجمہ کرنے کی ضرورت ہے۔"
+                    source_content: "This is a sample text that needs to be translated to Urdu."
+                    source_language: "en"
+                    target_language: "ur"
+                    success: true
+                    error_message: null
+        '400':
+          description: Bad request - invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TranslationErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TranslationErrorResponse'
+      security:
+        - bearerAuth: []
+      tags:
+        - Translation
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    TranslationRequest:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+          description: The content to be translated
+          example: "This is a sample text that needs to be translated to Urdu."
+          minLength: 1
+          maxLength: 10000
+        source_language:
+          type: string
+          description: Source language code (default: en)
+          default: "en"
+          example: "en"
+        target_language:
+          type: string
+          description: Target language code (default: ur)
+          default: "ur"
+          example: "ur"
+    TranslationResponse:
+      type: object
+      required:
+        - translated_content
+        - source_content
+        - source_language
+        - target_language
+        - success
+      properties:
+        translated_content:
+          type: string
+          description: The content translated to the target language
+          example: "یہ ایک نمونہ متن ہے جسے اردو میں ترجمہ کرنے کی ضرورت ہے۔"
+        source_content:
+          type: string
+          description: The original content that was translated
+          example: "This is a sample text that needs to be translated to Urdu."
+        source_language:
+          type: string
+          description: Source language code
+          example: "en"
+        target_language:
+          type: string
+          description: Target language code
+          example: "ur"
+        translation_time:
+          type: number
+          description: Time taken for translation in seconds
+          example: 1.25
+          format: float
+        success:
+          type: boolean
+          description: Whether the translation was successful
+          example: true
+        error_message:
+          type: string
+          description: Error message if translation failed, null otherwise
+          example: null
+    TranslationErrorResponse:
+      type: object
+      required:
+        - success
+        - error_message
+      properties:
+        success:
+          type: boolean
+          description: Whether the request was successful
+          example: false
+        error_message:
+          type: string
+          description: Error message explaining what went wrong
+          example: "Failed to translate content: API quota exceeded"
+    ValidationError:
+      type: object
+      required:
+        - detail
+      properties:
+        detail:
+          type: array
+          items:
+            type: object
+            required:
+              - loc
+              - msg
+              - type
+            properties:
+              loc:
+                type: array
+                items:
+                  type: string
+                description: Location of the validation error
+                example: ["body", "content"]
+              msg:
+                type: string
+                description: Error message
+                example: "Field required"
+              type:
+                type: string
+                description: Error type
+                example: "value_error"
+tags:
+  - name: Translation
+    description: Urdu translation functionality
