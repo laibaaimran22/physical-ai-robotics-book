@@ -8,6 +8,7 @@ A comprehensive educational platform featuring a Retrieval-Augmented Generation 
 - **User-Selected Text Queries**: Ask questions specifically about highlighted text
 - **Semantic Search**: Find relevant content using vector search
 - **Document Ingestion**: Add new content to the knowledge base
+- **Urdu Translation**: Translate book content to Urdu with one click
 - **Free Tier Limits**: API usage limits for free users
 - **Neon Serverless Postgres**: Scalable database backend
 - **Qdrant Vector Storage**: Cloud-based semantic search
@@ -97,6 +98,14 @@ A comprehensive educational platform featuring a Retrieval-Augmented Generation 
 - `POST /api/v1/rag/query-selected` - Query with selected text
 - `POST /api/v1/rag/search` - Semantic search
 - `POST /api/v1/ingest/document` - Document ingestion
+- `POST /api/v1/translate` - Translate content to Urdu
+- `GET /api/v1/translate/health` - Translation service health check
+- `GET /api/v1/translate/cache/stats` - Translation cache statistics
+- `POST /api/v1/translate/cache/clear` - Clear translation cache
+- `GET /api/v1/translate/history/stats` - Translation history statistics
+- `GET /api/v1/translate/history/user/{user_id}` - User translation history
+- `POST /api/v1/translate/feedback` - Submit translation feedback
+- `GET /api/v1/translate/feedback/stats` - Translation feedback statistics
 - `GET /api/v1/docs` - Interactive API documentation
 
 ## 📚 Usage
@@ -104,7 +113,10 @@ A comprehensive educational platform featuring a Retrieval-Augmented Generation 
 1. Navigate to the frontend at `http://localhost:3001`
 2. Use the integrated chatbot to ask questions about the book content
 3. Select text in lessons and use the "Ask about Selection" feature
-4. Access the API directly at `http://localhost:8000` for programmatic access
+4. Click the "Translate to Urdu" button on any documentation page to translate content
+5. Use keyboard shortcut `Ctrl+Shift+T` (or `Cmd+Shift+T` on Mac) to toggle translation
+6. Submit feedback on translation quality using the feedback component
+7. Access the API directly at `http://localhost:8000` for programmatic access
 
 ## ⚙️ Configuration
 
@@ -117,6 +129,9 @@ A comprehensive educational platform featuring a Retrieval-Augmented Generation 
 | `QDRANT_API_KEY` | Qdrant Cloud API key | Yes |
 | `COHERE_API_KEY` | Cohere API key for embeddings/LLM | Recommended |
 | `OPENAI_API_KEY` | OpenAI API key (fallback) | Optional |
+| `GEMINI_API_KEY` or `GOOGLE_GEMINI_API_KEY` | Google Gemini API key for Urdu translation | Optional* |
+
+*Either GEMINI_API_KEY or GOOGLE_GEMINI_API_KEY is required for the Urdu translation feature to work.
 
 ### Rate Limits
 

@@ -3,6 +3,10 @@ sidebar_position: 4
 title: "Understanding URDF for Humanoid Robotics"
 ---
 
+import ChapterTranslator from '@site/src/components/Translation/ChapterTranslator';
+
+<ChapterTranslator>
+
 # Understanding URDF for Humanoid Robotics
 
 ## Overview
@@ -394,3 +398,4 @@ For complex humanoid robots, use Xacro (XML Macros) to make URDF more maintainab
 
 ## Summary
 This lesson covered the fundamentals of URDF for humanoid robotics. Understanding URDF is essential for robot simulation, visualization, and control. In the next module, we'll explore physics simulation and environment building with Gazebo and Unity.
+</ChapterTranslator>

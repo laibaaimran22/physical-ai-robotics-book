@@ -2,6 +2,10 @@
 sidebar_label: 'Lesson 4.3: Object Recognition and Manipulation for VLA Systems'
 ---
 
+import ChapterTranslator from '@site/src/components/Translation/ChapterTranslator';
+
+<ChapterTranslator>
+
 # Lesson 4.3: Object Recognition and Manipulation for VLA Systems
 
 ## Overview
@@ -488,3 +492,4 @@ ros2 topic pub /llm_command std_msgs/String "data: 'pick up the red cup'"
 
 ## Summary
 This lesson covered implementing computer vision and manipulation capabilities for VLA systems. You learned to integrate object detection with LLM-driven planning and configure manipulation for humanoid robots. The next lesson will cover building a complete VLA pipeline.
+</ChapterTranslator>

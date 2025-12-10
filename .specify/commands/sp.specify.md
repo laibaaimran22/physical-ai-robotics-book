@@ -4,7 +4,7 @@ Create a complete specification for the Physical AI & Humanoid Robotics book pla
 
 ## Qdrant Configuration
 - **Cluster Endpoint**: https://649cf293-7c71-4831-89a5-fda46a3f47cd.us-east4-0.gcp.cloud.qdrant.io
-- **API Key**: [TO BE SET IN ENVIRONMENT VARIABLES]
+- **API Key**: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.xwgQykUtge_6CQ2UTRTDM3KaegYCNOO7Pnm7iAnP_ZQ
 - **Cluster ID**: 649cf293-7c71-4831-89a5-fda46a3f47cd
 
 ## Requirements to Include

@@ -3,6 +3,11 @@ sidebar_position: 1
 title: "Introduction to Gazebo for Robot Simulation"
 ---
 
+import ChapterTranslator from '@site/src/components/Translation/ChapterTranslator';
+
+<ChapterTranslator>
+
+
 # Introduction to Gazebo for Robot Simulation
 
 ## Overview
@@ -114,7 +119,7 @@ ros2 launch gazebo_ros empty_world.launch.py world:=/path/to/my_world.sdf
 
 ## Physics Simulation Concepts
 ### Gravity
-By default, gravity is enabled and set to Earth's gravity (-9.8 m/s² in the Z direction). You can modify it in your world file:
+By default, gravity is enabled and set to Earth's gravity (-9.8 m/sï¿½ in the Z direction). You can modify it in your world file:
 
 ```xml
 <world name="my_world">
@@ -220,3 +225,4 @@ gz model -f /path/to/robot.sdf -m my_robot
 
 ## Summary
 This lesson introduced the fundamentals of Gazebo for robot simulation. You learned how to create virtual environments, import robot models, and understand basic physics concepts. In the next lesson, we'll explore advanced physics and sensor simulation in Gazebo.
+</ChapterTranslator>

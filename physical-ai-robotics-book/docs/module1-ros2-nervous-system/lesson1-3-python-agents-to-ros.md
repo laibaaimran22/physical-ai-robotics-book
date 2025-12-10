@@ -3,6 +3,11 @@ sidebar_position: 3
 title: "Bridging Python Agents to ROS Controllers with rclpy"
 ---
 
+import ChapterTranslator from '@site/src/components/Translation/ChapterTranslator';
+
+<ChapterTranslator>
+
+
 # Bridging Python Agents to ROS Controllers with rclpy
 
 ## Overview
@@ -137,7 +142,7 @@ class AdvancedAIAgentNode(Node):
         if self.scan_data is None:
             return 0.0, 0.0  # Stop if no data
 
-        # Find the minimum distance in front (±30 degrees)
+        # Find the minimum distance in front (ï¿½30 degrees)
         front_indices = slice(len(self.scan_data)//2 - 30, len(self.scan_data)//2 + 30)
         front_distances = self.scan_data[front_indices]
 
@@ -230,3 +235,4 @@ The AI agent calls ROS 2 services to request specific actions from the robot.
 
 ## Summary
 This lesson demonstrated how to bridge Python-based AI agents with ROS 2 robot controllers using rclpy. This integration enables intelligent control of robots using AI algorithms. The next lesson will cover understanding URDF (Unified Robot Description Format) for humanoids.
+</ChapterTranslator>

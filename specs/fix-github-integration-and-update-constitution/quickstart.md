@@ -1,14 +1,17 @@
-# Quickstart Guide: Physical AI & Humanoid Robotics Book Platform Backend
+# Quickstart Guide: Physical AI & Humanoid Robotics Book Platform Backend with Urdu Translation
 
 ## Overview
-This guide provides instructions for setting up, running, and using the Physical AI & Humanoid Robotics book platform backend.
+This guide provides instructions for setting up, running, and using the Physical AI & Humanoid Robotics book platform backend, including the Urdu Translation Feature. The feature allows logged-in users to translate chapter content into Urdu with a single click.
 
 ## Prerequisites
 - Python 3.11+
 - Docker and Docker Compose (for optional containerized setup)
-- Access to OpenAI API
+- Access to Google Gemini API (for translation)
+- Access to OpenAI API (for embeddings and RAG)
 - Access to Qdrant Cloud
 - Access to Neon Serverless Postgres
+- Docusaurus v2.x or v3.x for frontend
+- Node.js 16+ for frontend development
 
 ## Environment Setup
 
@@ -46,9 +49,9 @@ QDRANT_CLUSTER_ID=<your-cluster-id>
 # Database Configuration
 NEON_DATABASE_URL=postgresql://username:password@ep-xxxx.us-east-1.aws.neon.tech/dbname?sslmode=require
 
-# Optional API Configuration (for enhanced features)
-# Leave empty to use completely free local models
-OPENAI_API_KEY=<optional-openai-key-for-embeddings>
+# API Configuration
+OPENAI_API_KEY=<openai-key-for-embeddings>
+GEMINI_API_KEY=<google-gemini-api-key-for-translation>
 
 # Application Configuration
 APP_ENV=development
@@ -109,6 +112,9 @@ Access the automatic API documentation at:
 - `POST /rag/semantic-search` - Semantic search
 - `GET /rag/metadata` - Get RAG metadata
 
+### Translation (New Feature)
+- `POST /api/v1/translate` - Translate content to Urdu
+
 ### User Management
 - `GET /user/notes` - Get user notes
 - `POST /user/notes` - Create user note
@@ -122,6 +128,38 @@ Access the automatic API documentation at:
 - `GET /book/chapters` - Get all chapters
 - `GET /book/lessons/:id` - Get specific lesson
 - `GET /book/search` - Search book content
+
+## Urdu Translation Feature Setup
+
+### Backend Setup
+The translation endpoint is available at:
+```
+POST /api/v1/translate
+```
+
+### Frontend Setup
+The following components are available in the frontend:
+
+1. `TranslationButton` - Button component that triggers translation
+2. `TranslationWrapper` - Wrapper component that manages content translation
+3. `useTranslation` - Hook for translation state management
+
+### Integration with Docusaurus Pages
+To add translation functionality to a Docusaurus page, wrap your content with the `TranslationWrapper` component:
+
+```jsx
+import TranslationWrapper from './components/TranslationWrapper';
+
+function MyPage() {
+  return (
+    <div>
+      <TranslationWrapper>
+        {/* Your page content here */}
+      </TranslationWrapper>
+    </div>
+  );
+}
+```
 
 ## Document Ingestion Process
 
@@ -168,8 +206,46 @@ The platform enforces the following limits for free tier users:
 
 - **Chatbot API**: 30 queries/day, 5 RAG queries/minute, max 5k tokens per response
 - **Search API**: 50 search queries/day
+- **Translation API**: Included in the general rate limit (100 requests/minute per user)
 - **User Data Storage**: 50 notes, 50 highlights, 10 bookmarks
 - **Rate Limits**: 100 requests/minute per user
+
+## Translation Feature Usage
+
+### For End Users
+1. Navigate to any chapter page in the book
+2. Click the "Translate to Urdu" button at the top of the page
+3. Wait for the translation to complete (progress indicator shown)
+4. The page content will be replaced with Urdu translation
+5. Use the "Back to English" button to restore the original content
+
+### API Documentation for Translation
+
+#### Translation Request
+```
+POST /api/v1/translate
+```
+
+**Request Body:**
+```json
+{
+  "content": "The English content to translate",
+  "source_language": "en",
+  "target_language": "ur"
+}
+```
+
+**Response:**
+```json
+{
+  "translated_content": "مترجم کردہ مواد یہاں ہوگا",
+  "source_content": "The original English content",
+  "source_language": "en",
+  "target_language": "ur",
+  "success": true,
+  "error_message": null
+}
+```
 
 ## Testing
 
@@ -191,11 +267,17 @@ pytest --cov=backend --cov-report=html
 ### Code Structure
 The backend follows a layered architecture:
 - `api/` - API routes and endpoints
+- `api/translation.py` - Translation API endpoints (new)
 - `services/` - Business logic
 - `models/` - Data models and schemas
 - `database/` - Database operations (CRUD, repositories)
 - `utils/` - Utility functions
 - `core/` - Core functionality (embeddings, vector store, OpenAI client)
+
+### Frontend Structure
+- `src/components/TranslationButton/` - Translation button component
+- `src/components/TranslationWrapper/` - Content wrapper for translation
+- `src/hooks/useTranslation.ts` - Translation state management hook
 
 ### Adding New Models
 1. Create the SQLAlchemy model in `models/`
@@ -221,3 +303,4 @@ docker run -p 8000:8000 --env-file .env physical-ai-backend
 - Set up a reverse proxy (nginx, Apache)
 - Configure SSL certificates
 - Use a load balancer for scaling
+- Monitor API usage for translation service costs

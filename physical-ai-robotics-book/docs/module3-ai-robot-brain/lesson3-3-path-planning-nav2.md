@@ -2,6 +2,10 @@
 sidebar_label: 'Lesson 3.3: Path Planning for Bipedal Humanoid Movement with Nav2'
 ---
 
+import ChapterTranslator from '@site/src/components/Translation/ChapterTranslator';
+
+<ChapterTranslator>
+
 # Lesson 3.3: Path Planning for Bipedal Humanoid Movement with Nav2
 
 ## Overview
@@ -116,3 +120,7 @@ global_costmap:
           data_type: "LaserScan"
           raytrace_max_range: 5.0  # Longer range for humanoid planning
           obstacle_max_range: 4.0
+```
+
+
+</ChapterTranslator>

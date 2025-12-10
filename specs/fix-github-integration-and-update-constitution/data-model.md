@@ -588,3 +588,127 @@ class BookMetadataInDB(BookMetadataBase):
 
     class Config:
         from_attributes = True
+```
+
+## Translation Feature Data Models
+
+### TranslationRequest
+**Purpose**: Request model for translating content to Urdu
+
+```python
+class TranslationRequest(BaseModel):
+    content: str
+        description: "The English content to be translated to Urdu"
+        validation: "Required, minimum 1 character, maximum 10000 characters"
+
+    source_language: str = "en"
+        description: "Source language code (default: en for English)"
+        validation: "Optional, defaults to 'en'"
+
+    target_language: str = "ur"
+        description: "Target language code (default: ur for Urdu)"
+        validation: "Optional, defaults to 'ur'"
+```
+
+### TranslationResponse
+**Purpose**: Response model for translation API
+
+```python
+class TranslationResponse(BaseModel):
+    translated_content: str
+        description: "The content translated to Urdu"
+        validation: "Required"
+
+    source_content: str
+        description: "Original English content that was translated"
+        validation: "Required"
+
+    source_language: str
+        description: "Source language code"
+        validation: "Required, e.g., 'en'"
+
+    target_language: str
+        description: "Target language code"
+        validation: "Required, e.g., 'ur'"
+
+    translation_time: float
+        description: "Time taken for translation in seconds"
+        validation: "Optional, for performance monitoring"
+
+    success: bool
+        description: "Whether the translation was successful"
+        validation: "Required, boolean"
+
+    error_message: Optional[str]
+        description: "Error message if translation failed"
+        validation: "Optional"
+```
+
+### TranslationHistory (Optional Future Enhancement)
+**Purpose**: Model for storing translation history if needed for caching or analytics
+
+```python
+class TranslationHistory(BaseModel):
+    id: UUID
+        description: "Unique identifier for the translation record"
+        validation: "Required, auto-generated UUID"
+
+    user_id: Optional[UUID]
+        description: "ID of the user who requested translation (if authenticated)"
+        validation: "Optional"
+
+    original_content_hash: str
+        description: "SHA-256 hash of the original content for deduplication"
+        validation: "Required, unique"
+
+    source_content: str
+        description: "Original English content"
+        validation: "Required"
+
+    translated_content: str
+        description: "Translated Urdu content"
+        validation: "Required"
+
+    source_language: str
+        description: "Source language code"
+        validation: "Required"
+
+    target_language: str
+        description: "Target language code"
+        validation: "Required"
+
+    created_at: datetime
+        description: "Timestamp when translation was created"
+        validation: "Required, auto-generated"
+
+    request_count: int
+        description: "Number of times this translation has been requested"
+        validation: "Required, default 1"
+```
+
+## Frontend State Models
+
+### TranslationState
+**Purpose**: Frontend state management for translation functionality
+
+```typescript
+interface TranslationState {
+  isTranslating: boolean
+    description: "Whether a translation is currently in progress"
+
+  isTranslated: boolean
+    description: "Whether the content is currently in translated state"
+
+  originalContent: string
+    description: "The original English content"
+
+  translatedContent: string
+    description: "The translated Urdu content (empty if not translated)"
+
+  error: string | null
+    description: "Error message if translation failed"
+
+  translationProgress: number
+    description: "Progress percentage for translation (0-100)"
+}
+```

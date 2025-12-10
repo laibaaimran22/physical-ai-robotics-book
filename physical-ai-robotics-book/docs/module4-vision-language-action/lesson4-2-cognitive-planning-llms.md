@@ -3,6 +3,10 @@ sidebar_position: 2
 title: "Cognitive Planning: Translating Natural Language to Robot Actions"
 ---
 
+import ChapterTranslator from '@site/src/components/Translation/ChapterTranslator';
+
+<ChapterTranslator>
+
 # Lesson 4.2: Cognitive Planning: Translating Natural Language to Robot Actions
 
 ## Overview
@@ -1621,3 +1625,4 @@ ros2 topic echo /cognitive_planner/action_sequence
 
 ## Summary
 This lesson covered cognitive planning using LLMs to translate natural language commands into robot action sequences. You learned about prompt engineering, context-aware command resolution, Isaac ROS integration, and performance optimization techniques. The next lesson will explore object recognition and manipulation for VLA systems.
+</ChapterTranslator>

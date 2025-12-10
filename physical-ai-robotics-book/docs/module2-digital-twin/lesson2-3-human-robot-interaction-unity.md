@@ -3,6 +3,10 @@ sidebar_position: 3
 title: "High-Fidelity Human-Robot Interaction in Unity"
 ---
 
+import ChapterTranslator from '@site/src/components/Translation/ChapterTranslator';
+
+<ChapterTranslator>
+
 # High-Fidelity Human-Robot Interaction in Unity
 
 ## Overview
@@ -317,7 +321,7 @@ public class RobotHRIController : MonoBehaviour
         if (jointAngleText != null && robotController != null && robotController.joints.Length > 0)
         {
             // Display first joint angle as example
-            jointAngleText.text = $"Joint 1: {robotController.joints[0].localEulerAngles.x:F1}°";
+            jointAngleText.text = $"Joint 1: {robotController.joints[0].localEulerAngles.x:F1}ï¿½";
         }
     }
 
@@ -528,3 +532,4 @@ Enable occlusion culling to improve performance in complex scenes:
 
 ## Summary
 This lesson covered creating high-fidelity human-robot interaction in Unity. You learned how to import robot models, set up realistic rendering, design user interfaces, and implement interactive elements. The next lesson will explore bridging Gazebo/ROS 2 with Unity for enhanced simulation capabilities.
+</ChapterTranslator>

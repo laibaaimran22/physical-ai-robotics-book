@@ -3,6 +3,10 @@ sidebar_position: 2
 title: "ROS 2 Nodes, Topics, and Services in Practice"
 ---
 
+import ChapterTranslator from '@site/src/components/Translation/ChapterTranslator';
+
+<ChapterTranslator>
+
 # ROS 2 Nodes, Topics, and Services in Practice
 
 ## Overview
@@ -205,3 +209,4 @@ if __name__ == '__main__':
 
 ## Summary
 This lesson provided practical examples of implementing ROS 2 nodes, topics, and services. Understanding these communication patterns is crucial for building distributed robotic systems. The next lesson will cover bridging Python agents to ROS controllers using rclpy.
+</ChapterTranslator>
