@@ -23,19 +23,30 @@ GEMINI_API_KEY = (os.getenv("GOOGLE_GEMINI_API_KEY") or os.getenv("GEMINI_API_KE
 
 if not GEMINI_API_KEY:
     print("WARNING: No GEMINI_API_KEY found. Chatbot functionality will not work.")
-    # In production environments, we should fail if no API key is provided
-    if os.getenv("ENVIRONMENT", "development").lower() != "production":
-        raise ValueError("GOOGLE_GEMINI_API_KEY or GEMINI_API_KEY environment variable or setting is required")
-    else:
-        # For production, we might want to allow the app to start even without the API key
-        # and handle the error gracefully in the endpoints
-        print("Running in production without GEMINI_API_KEY - chatbot will be disabled")
-        GEMINI_API_KEY = ""
+    # Allow the app to start even without the API key and handle errors gracefully in endpoints
+    print("Running without GEMINI_API_KEY - chatbot will be disabled")
+    # Create a mock client that returns error messages when called
+    class MockAsyncOpenAI:
+        def __init__(self, api_key, base_url):
+            pass
 
-client = openai.AsyncOpenAI(
-    api_key=GEMINI_API_KEY,
-    base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
-)
+        class Chat:
+            def completions(self):
+                return self
+
+            async def create(self, **kwargs):
+                raise Exception("No API key configured - chat functionality unavailable")
+
+        @property
+        def chat(self):
+            return MockAsyncOpenAI.Chat()
+
+    client = MockAsyncOpenAI(api_key="", base_url="")
+else:
+    client = openai.AsyncOpenAI(
+        api_key=GEMINI_API_KEY,
+        base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+    )
 
 # Create FastAPI app instance
 app = FastAPI(
@@ -85,7 +96,11 @@ async def chat_endpoint(request: ChatRequest):
         result = Runner.run_sync(starting_agent=agent, input_message=request.message)
         return {"response": result.final_output}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing chat request: {str(e)}")
+        error_msg = str(e)
+        if "No API key configured" in error_msg:
+            return {"response": "Chat functionality is currently unavailable. Please try again later."}
+        else:
+            raise HTTPException(status_code=500, detail=f"Error processing chat request: {str(e)}")
 
 
 @app.post("/agent-chat")
@@ -100,7 +115,11 @@ async def agent_chat_endpoint(request: AgentRequest):
         result = Runner.run_sync(starting_agent=agent, input_message=request.message)
         return {"reply": result.final_output}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing agent chat request: {str(e)}")
+        error_msg = str(e)
+        if "No API key configured" in error_msg:
+            return {"reply": "Chat functionality is currently unavailable. Please try again later."}
+        else:
+            raise HTTPException(status_code=500, detail=f"Error processing agent chat request: {str(e)}")
 
 
 @app.get("/health")
