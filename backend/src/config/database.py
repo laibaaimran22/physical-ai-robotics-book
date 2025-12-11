@@ -6,21 +6,53 @@ import os
 
 from .settings import settings
 
-# Create async engine for Postgres - ensure URL uses asyncpg driver
-db_url = settings.DATABASE_URL
-if "postgresql://" in db_url:
-    db_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
-elif "postgres://" in db_url:
-    db_url = db_url.replace("postgres://", "postgresql+asyncpg://")
+# Create async engine with fallback to SQLite for Hugging Face Spaces
+db_url = settings.DATABASE_URL or os.getenv("DATABASE_URL", "")
 
-engine = create_async_engine(
-    db_url,
-    echo=settings.DEBUG,  # Set to True to see SQL queries in development
-    pool_pre_ping=True,  # Verify connections before use
-    pool_size=5,  # Number of connection objects to maintain
-    max_overflow=10,  # Additional connections beyond pool_size
-    pool_recycle=300,  # Recycle connections after 5 minutes
-)
+# Check if we're running on Hugging Face Spaces or don't have a proper database URL
+if not db_url or "sqlite" not in db_url.lower():
+    # Default to SQLite for Hugging Face Spaces compatibility
+    db_url = "sqlite+aiosqlite:///./book_platform.db"
+
+# Configure engine based on database type
+if "sqlite" in db_url:
+    # SQLite engine (for Hugging Face Spaces)
+    engine = create_async_engine(
+        db_url,
+        echo=settings.DEBUG,
+        pool_pre_ping=True,
+    )
+    # Synchronous engine for SQLite
+    sync_engine = create_engine(
+        db_url.replace("sqlite+aiosqlite://", "sqlite://"),
+        echo=settings.DEBUG,
+        pool_pre_ping=True,
+    )
+else:
+    # PostgreSQL engine (for other environments)
+    if "postgresql://" in db_url:
+        db_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
+    elif "postgres://" in db_url:
+        db_url = db_url.replace("postgres://", "postgresql+asyncpg://")
+
+    engine = create_async_engine(
+        db_url,
+        echo=settings.DEBUG,
+        pool_pre_ping=True,
+        pool_size=5,
+        max_overflow=10,
+        pool_recycle=300,
+    )
+
+    # Synchronous engine for PostgreSQL
+    sync_engine = create_engine(
+        settings.DATABASE_URL.replace("+asyncpg", "+psycopg2") if "+asyncpg" in settings.DATABASE_URL else settings.DATABASE_URL,
+        echo=settings.DEBUG,
+        pool_pre_ping=True,
+        pool_size=5,
+        max_overflow=10,
+        pool_recycle=300,
+    )
 
 # Create async session factory
 AsyncSessionLocal = sessionmaker(
@@ -39,16 +71,6 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
             yield session
         finally:
             await session.close()
-
-# Synchronous engine for Alembic migrations
-sync_engine = create_engine(
-    settings.DATABASE_URL.replace("+asyncpg", "+psycopg2") if "+asyncpg" in settings.DATABASE_URL else settings.DATABASE_URL,
-    echo=settings.DEBUG,
-    pool_pre_ping=True,
-    pool_size=5,
-    max_overflow=10,
-    pool_recycle=300,
-)
 
 SyncSessionLocal = sessionmaker(
     sync_engine,
