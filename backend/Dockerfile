@@ -14,6 +14,9 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
+# Download NLTK data
+RUN python -c "import nltk; nltk.download('punkt')"
+
 # Copy the application code
 COPY . .
 
