@@ -4,8 +4,6 @@ from tokenizers import Tokenizer
 from tokenizers.models import BPE
 from tokenizers.trainers import BpeTrainer
 from tokenizers.pre_tokenizers import Whitespace
-import nltk
-from nltk.tokenize import sent_tokenize
 
 
 # Note: NLTK punkt tokenizer required for sentence tokenization
@@ -37,10 +35,12 @@ def chunk_text_by_tokens(text: str, max_tokens: int = 400, min_tokens: int = 100
     """
     # Split text into sentences first
     try:
+        # Import nltk locally to avoid import-time downloads
+        import nltk
+        from nltk.tokenize import sent_tokenize
         sentences = sent_tokenize(text)
-    except LookupError:
+    except (ImportError, LookupError):
         # Fallback to simple sentence splitting if punkt tokenizer is not available
-        import re
         sentences = re.split(r'[.!?]+', text)
         sentences = [s.strip() for s in sentences if s.strip()]
 
