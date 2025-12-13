@@ -1,0 +1,86 @@
+.profileContainer {
+  padding: 1rem 0;
+}
+
+.profileCard {
+  background: var(--ifm-card-background-color);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: var(--ifm-card-border-radius);
+  padding: 1.5rem;
+  box-shadow: var(--ifm-global-shadow-lw);
+}
+
+.profileTitle {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: var(--ifm-heading-color);
+}
+
+.profileSection {
+  margin-bottom: 1.5rem;
+}
+
+.profileSection h3 {
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+  color: var(--ifm-heading-color);
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+  padding-bottom: 0.25rem;
+}
+
+.profileField {
+  margin-bottom: 0.5rem;
+  padding: 0.25rem 0;
+}
+
+.profileField strong {
+  display: inline-block;
+  width: 180px;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.profileActions {
+  margin-top: 1.5rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.logoutButton {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: var(--ifm-button-border-radius);
+  cursor: pointer;
+  font-weight: var(--ifm-button-font-weight);
+}
+
+.logoutButton:hover {
+  background-color: #c82333;
+}
+
+.updateProfileLink {
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--ifm-color-primary);
+  border-radius: var(--ifm-button-border-radius);
+}
+
+.updateProfileLink:hover {
+  text-decoration: none;
+  background-color: var(--ifm-color-primary-lightest);
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+}
+
+@media (min-width: 997px) {
+  .profileCard {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+}

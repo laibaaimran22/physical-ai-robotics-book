@@ -4,9 +4,14 @@ title: "High-Fidelity Human-Robot Interaction in Unity"
 ---
 
 import ChapterTranslator from '@site/src/components/Translation/ChapterTranslator';
+import ChapterPersonalization from '@site/src/components/Personalization/ChapterPersonalization';
 
 <ChapterTranslator>
 
+<ChapterPersonalization
+  chapterId="high-fidelity-human-robot-interaction-in-unity"
+  chapterTitle="High-Fidelity Human-Robot Interaction in Unity"
+/>
 # High-Fidelity Human-Robot Interaction in Unity
 
 ## Overview

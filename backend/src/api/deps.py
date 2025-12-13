@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Security
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Generator, Optional
@@ -7,8 +7,8 @@ from jwt.exceptions import InvalidTokenError
 
 from src.config.database import get_db_session
 from src.config.settings import settings
-from src.models.user import User  # Will be created later
-from src.services.user_service import get_user_by_id  # Will be created later
+from src.models.user import User
+from src.database.crud.user import get_user as get_user_by_id
 
 
 # Security scheme for JWT
@@ -57,29 +57,28 @@ def get_current_user():
     return _get_current_user
 
 
-def get_optional_user():
+async def get_optional_user(
+    auth_header: Optional[HTTPAuthorizationCredentials] = Security(HTTPBearer(auto_error=False)),
+    db: AsyncSession = Depends(get_db)
+) -> Optional[User]:
     """Dependency to get the current user if authenticated (optional)."""
-    async def _get_optional_user(
-        credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-        db: AsyncSession = Depends(get_db)
-    ) -> Optional[User]:
-        if not credentials:
-            return None
+    if not auth_header or not auth_header.credentials:
+        return None
 
-        try:
-            payload = jwt.decode(
-                credentials.credentials,
-                settings.JWT_SECRET_KEY,
-                algorithms=[settings.JWT_ALGORITHM]
-            )
-            user_id: str = payload.get("sub")
-            if user_id is None:
-                return None
-        except (InvalidTokenError, jwt.ExpiredSignatureError):
+    try:
+        payload = jwt.decode(
+            auth_header.credentials,
+            settings.JWT_SECRET_KEY,
+            algorithms=[settings.JWT_ALGORITHM]
+        )
+        user_id: str = payload.get("sub")
+        if user_id is None:
             return None
+    except (InvalidTokenError, jwt.ExpiredSignatureError):
+        return None
 
-        user = await get_user_by_id(db, user_id=int(user_id))
-        return user if user else None
+    user = await get_user_by_id(db, user_id=int(user_id))
+    return user if user else None
 
 
 # Rate limiting dependency will be implemented later

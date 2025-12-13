@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 from src.models.user import User
 from src.database.crud.user import authenticate_user, create_user as create_user_db, get_user_by_email
-from src.utils.security import create_access_token, create_refresh_token, verify_token
+from src.utils.security import create_access_token, create_refresh_token, verify_token, get_password_hash
 from src.config.settings import settings
 
 
@@ -36,7 +36,16 @@ class AuthService:
 
         return user
 
-    async def register_user(self, email: str, password: str, full_name: Optional[str] = None) -> Optional[User]:
+    async def register_user(
+        self,
+        email: str,
+        password: str,
+        full_name: Optional[str] = None,
+        software_background_level: Optional[str] = None,
+        hardware_background_level: Optional[str] = None,
+        preferred_languages: Optional[str] = None,
+        learning_goals: Optional[str] = None
+    ) -> Optional[User]:
         """
         Register a new user.
 
@@ -44,6 +53,10 @@ class AuthService:
             email: User's email
             password: User's password
             full_name: User's full name (optional)
+            software_background_level: User's software background level (beginner/intermediate/advanced)
+            hardware_background_level: User's hardware background level (beginner/intermediate/advanced)
+            preferred_languages: User's preferred programming languages
+            learning_goals: User's learning goals
 
         Returns:
             User object if registration is successful, None otherwise
@@ -56,8 +69,13 @@ class AuthService:
         # Create new user
         user = User(
             email=email,
-            hashed_password=password,  # This will be hashed in the CRUD function
+            hashed_password=get_password_hash(password),  # Hash the password before storing
             full_name=full_name,
+            software_background_level=software_background_level,
+            hardware_background_level=hardware_background_level,
+            preferred_languages=preferred_languages,
+            learning_goals=learning_goals,
+            personalization_preferences='{"chapters": {}}',  # Initialize with empty chapters object
             is_active=True,
             is_admin=False
         )
@@ -123,7 +141,8 @@ class AuthService:
         if not user_id:
             return None
 
-        user = await get_user_by_email(self.db, user_id)
+        from src.database.crud.user import get_user
+        user = await get_user(self.db, user_id)
         return user
 
 

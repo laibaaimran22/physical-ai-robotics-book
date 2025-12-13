@@ -4,9 +4,14 @@ title: "Advanced Physics and Sensor Simulation in Gazebo"
 ---
 
 import ChapterTranslator from '@site/src/components/Translation/ChapterTranslator';
+import ChapterPersonalization from '@site/src/components/Personalization/ChapterPersonalization';
 
 <ChapterTranslator>
 
+<ChapterPersonalization
+  chapterId="advanced-physics-and-sensor-simulation-in-gazebo"
+  chapterTitle="Advanced Physics and Sensor Simulation in Gazebo"
+/>
 # Advanced Physics and Sensor Simulation in Gazebo
 
 ## Overview

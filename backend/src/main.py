@@ -11,11 +11,18 @@ from pydantic import BaseModel
 from .api.rag import router as rag_router
 from .api.book import router as book_router
 from .api.ingest import router as ingest_router
+from .api.auth import router as auth_router
+from .api.auth_background import router as auth_background_router
 from .config.settings import settings
 from .agent.agent_runner import agent, Runner, AgentRequest
+from .core.llm_client_gemini import initialize_gemini_client
 
 # Load environment variables
 load_dotenv()
+
+# Initialize the Gemini client
+initialize_gemini_client()
+print("DEBUG: Gemini client initialization called")
 
 # Initialize the OpenAI client with Google Gemini API
 GEMINI_API_KEY = (os.getenv("GOOGLE_GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY") or
@@ -82,6 +89,8 @@ app.add_middleware(
 app.include_router(rag_router, prefix="/api/v1", tags=["RAG"])
 app.include_router(book_router, prefix="/api/v1", tags=["Book"])
 app.include_router(ingest_router, prefix="/api/v1", tags=["Ingestion"])
+app.include_router(auth_router, prefix="/api/v1/auth", tags=["Authentication"])
+app.include_router(auth_background_router, prefix="/api/v1/auth", tags=["Authentication Background"])
 
 
 @app.post("/chat")

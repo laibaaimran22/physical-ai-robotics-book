@@ -21,7 +21,26 @@ if GEMINI_API_KEY:
             print(f"  - {model.name}")
 
         # Try to create a generative model instance with an available model
-        model = genai.GenerativeModel('gemini-pro-latest')
+        # Use the same fallback approach as the main client
+        potential_models = [
+            "gemini-1.5-flash",
+            "gemini-1.5-pro",
+            "gemini-1.0-pro",
+            "gemini-pro"
+        ]
+
+        model = None
+        for model_name in potential_models:
+            try:
+                model = genai.GenerativeModel(model_name)
+                print(f"Successfully created model instance with: {model_name}")
+                break
+            except Exception as e:
+                print(f"Failed to create model instance with '{model_name}': {str(e)}")
+                continue
+
+        if model is None:
+            raise Exception("Could not create any Gemini model instance")
 
         print("Testing Gemini API connection with native library...")
         response = model.generate_content("Hello, how are you?")

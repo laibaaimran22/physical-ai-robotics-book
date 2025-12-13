@@ -10,9 +10,8 @@ if __name__ == "__main__":
     # Start the uvicorn server with the correct module path
     uvicorn.run(
         "src.main:app",
-        host="0.0.0.0",
+        host="127.0.0.1",
         port=8000,
-        reload=True,
-        reload_dirs=["src"],
+        reload=False,
         log_level="info"
     )

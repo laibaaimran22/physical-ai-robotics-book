@@ -1,3 +1,18 @@
+# Import SQLAlchemy models to register them with the Base metadata
+from .user import User
+from .book_metadata import BookMetadata
+from .chapter import Chapter
+from .lesson import Lesson
+from .lesson_section import LessonSection
+from .note import Note
+from .highlight import Highlight
+from .chat_history import ChatHistory
+from .rag_query import RAGQuery
+from .api_usage_quota import APIUsageQuota
+from .embedding_document import EmbeddingDocument
+from .ingestion_job import IngestionJob
+
+# Keep the Pydantic schemas
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from datetime import datetime

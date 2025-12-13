@@ -1,0 +1,120 @@
+.signupContainer {
+  padding: 2rem 0;
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+}
+
+.signupCard {
+  background: var(--ifm-card-background-color);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: var(--ifm-card-border-radius);
+  padding: 2rem;
+  box-shadow: var(--ifm-global-shadow-lw);
+}
+
+.signupTitle {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.signupSubtitle {
+  text-align: center;
+  color: var(--ifm-color-emphasis-600);
+  margin-bottom: 2rem;
+}
+
+.signupForm {
+  margin-top: 1.5rem;
+}
+
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.formLabel {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: var(--ifm-color-emphasis-800);
+}
+
+.formInput {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: var(--ifm-input-border-radius);
+  font-size: 1rem;
+  background-color: var(--ifm-input-background);
+  color: var(--ifm-font-color-base);
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 0 0 2px var(--ifm-color-primary-lightest);
+}
+
+.formTextarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.formHint {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--ifm-color-emphasis-600);
+}
+
+.signupButton {
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--ifm-color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--ifm-button-border-radius);
+  font-size: 1rem;
+  font-weight: var(--ifm-button-font-weight);
+  cursor: pointer;
+  transition: background-color var(--ifm-transition-fast) ease;
+}
+
+.signupButton:hover {
+  background-color: var(--ifm-color-primary-dark);
+}
+
+.signupButtonDisabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.loginLink {
+  text-align: center;
+  margin-top: 1.5rem;
+  color: var(--ifm-color-emphasis-600);
+}
+
+.loginLink a {
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+}
+
+.loginLink a:hover {
+  text-decoration: underline;
+}
+
+.error {
+  background-color: #fee;
+  color: #c33;
+  padding: 1rem;
+  border-radius: var(--ifm-card-border-radius);
+  margin-bottom: 1.5rem;
+  border: 1px solid #fcc;
+}
+
+@media (min-width: 997px) {
+  .signupRow {
+    margin-top: 2rem;
+  }
+}

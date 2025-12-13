@@ -11,8 +11,34 @@ db_url = settings.DATABASE_URL or os.getenv("DATABASE_URL", "")
 
 # Check if we're running on Hugging Face Spaces or don't have a proper database URL
 if not db_url or "sqlite" not in db_url.lower():
-    # Default to SQLite for Hugging Face Spaces compatibility
-    db_url = "sqlite+aiosqlite:///./book_platform.db"
+    # Check if it's a PostgreSQL URL and ensure it uses async driver
+    if "postgresql://" in db_url:
+        # Handle sslmode parameter for asyncpg
+        if "?sslmode=require" in db_url:
+            db_url = db_url.replace("postgresql://", "postgresql+asyncpg://").replace("?sslmode=require", "")
+        else:
+            db_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
+    elif "postgres://" in db_url:
+        # Handle sslmode parameter for asyncpg
+        if "?sslmode=require" in db_url:
+            db_url = db_url.replace("postgres://", "postgresql+asyncpg://").replace("?sslmode=require", "")
+        else:
+            db_url = db_url.replace("postgres://", "postgresql+asyncpg://")
+    elif db_url:  # If there's a non-SQLite URL but it's not PostgreSQL
+        if "asyncpg" not in db_url:
+            if "postgresql" not in db_url:
+                clean_url = db_url.split("://", 1)[1]
+                if "?sslmode=require" in clean_url:
+                    clean_url = clean_url.replace("?sslmode=require", "")
+                db_url = "postgresql+asyncpg://" + clean_url
+            else:
+                if "?sslmode=require" in db_url:
+                    db_url = db_url.replace("postgresql://", "postgresql+asyncpg://").replace("?sslmode=require", "")
+                else:
+                    db_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
+    else:
+        # Default to SQLite for Hugging Face Spaces compatibility
+        db_url = "sqlite+aiosqlite:///./book_platform.db"
 
 # Configure engine based on database type
 if "sqlite" in db_url:
@@ -45,8 +71,24 @@ else:
     )
 
     # Synchronous engine for PostgreSQL
+    sync_db_url = settings.DATABASE_URL
+    if "postgresql+asyncpg://" in sync_db_url:
+        # Remove sslmode from the asyncpg URL and add it back for psycopg2
+        base_url = sync_db_url.replace("postgresql+asyncpg://", "postgresql://")
+        if "?sslmode=require" not in base_url:
+            base_url += "?sslmode=require"
+        sync_db_url = base_url
+    elif "postgresql://" in sync_db_url:
+        # Ensure sslmode is included for psycopg2
+        if "?sslmode=require" not in sync_db_url:
+            sync_db_url += "?sslmode=require"
+    elif "+asyncpg" in sync_db_url:
+        sync_db_url = sync_db_url.replace("+asyncpg", "+psycopg2")
+        if "?sslmode=require" not in sync_db_url:
+            sync_db_url += "?sslmode=require"
+
     sync_engine = create_engine(
-        settings.DATABASE_URL.replace("+asyncpg", "+psycopg2") if "+asyncpg" in settings.DATABASE_URL else settings.DATABASE_URL,
+        sync_db_url,
         echo=settings.DEBUG,
         pool_pre_ping=True,
         pool_size=5,

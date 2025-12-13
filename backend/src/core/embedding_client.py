@@ -3,6 +3,7 @@ import numpy as np
 import openai
 from cohere import Client as CohereClient
 from sentence_transformers import SentenceTransformer
+import google.generativeai as genai
 from ..config.settings import settings
 import logging
 
@@ -15,11 +16,14 @@ class EmbeddingClient:
 
     def __init__(self):
         self.model_name = settings.EMBEDDING_MODEL
-        self.dimension = settings.EMBEDDING_DIMENSION
+        # Use 384 dimensions to match the existing Qdrant collection that was likely created with all-MiniLM-L6-v2
+        # This ensures compatibility with the existing vector store
+        self.dimension = 384
 
         # Initialize clients based on available API keys
         self.openai_client = None
         self.cohere_client = None
+        self.gemini_client = None
         self.local_model = None
 
         # Initialize OpenAI client if API key is provided
@@ -37,6 +41,20 @@ class EmbeddingClient:
                 logger.info("Initialized Cohere embedding client")
             except Exception as e:
                 logger.warning(f"Failed to initialize Cohere client: {e}")
+
+        # Initialize Gemini client if API key is provided
+        gemini_api_key = settings.GOOGLE_GEMINI_API_KEY or settings.GEMINI_API_KEY
+        if gemini_api_key:
+            try:
+                genai.configure(api_key=gemini_api_key)
+                # For embedding generation, we'll use the embedding models
+                # Note: Gemini API doesn't have a dedicated embedding client like OpenAI/Cohere
+                # We'll handle embedding generation differently
+                self.gemini_api_key = gemini_api_key
+                logger.info("Initialized Gemini embedding client")
+            except Exception as e:
+                logger.warning(f"Failed to initialize Gemini client: {e}")
+                self.gemini_api_key = None
 
         # Initialize local model as fallback
         try:
@@ -56,14 +74,38 @@ class EmbeddingClient:
         Returns:
             Embedding vector as a list of floats
         """
-        # Try OpenAI first if available
+        # Try local model first to ensure correct dimensions (384) that match the Qdrant collection
+        if self.local_model:
+            try:
+                embedding = self.local_model.encode([text])
+                result = embedding[0].tolist()
+                # Ensure the result has the correct dimension
+                if len(result) != self.dimension:
+                    # If dimensions don't match, truncate or pad as needed
+                    if len(result) > self.dimension:
+                        result = result[:self.dimension]
+                    else:
+                        result.extend([0.0] * (self.dimension - len(result)))
+                return result
+            except Exception as e:
+                logger.warning(f"Local embedding failed: {e}")
+
+        # Try OpenAI next if available
         if self.openai_client:
             try:
                 response = self.openai_client.embeddings.create(
                     input=text,
                     model=self.model_name
                 )
-                return response.data[0].embedding
+                result = response.data[0].embedding
+                # Ensure the result has the correct dimension
+                if len(result) != self.dimension:
+                    # If dimensions don't match, truncate or pad as needed
+                    if len(result) > self.dimension:
+                        result = result[:self.dimension]
+                    else:
+                        result.extend([0.0] * (self.dimension - len(result)))
+                return result
             except Exception as e:
                 logger.warning(f"OpenAI embedding failed: {e}")
 
@@ -74,17 +116,42 @@ class EmbeddingClient:
                     texts=[text],
                     model=self.model_name
                 )
-                return response.embeddings[0]
+                result = response.embeddings[0]
+                # Ensure the result has the correct dimension
+                if len(result) != self.dimension:
+                    # If dimensions don't match, truncate or pad as needed
+                    if len(result) > self.dimension:
+                        result = result[:self.dimension]
+                    else:
+                        result.extend([0.0] * (self.dimension - len(result)))
+                return result
             except Exception as e:
                 logger.warning(f"Cohere embedding failed: {e}")
 
-        # Fall back to local model
-        if self.local_model:
+        # Try Gemini last (with dimension adjustment)
+        if self.gemini_api_key:
             try:
-                embedding = self.local_model.encode([text])
-                return embedding[0].tolist()
+                # Configure the API
+                genai.configure(api_key=self.gemini_api_key)
+
+                # Use the embedding generation function
+                # Google's embedding models are different from the generative models
+                result = genai.embed_content(
+                    model="models/text-embedding-004",  # Google's latest text embedding model
+                    content=text,
+                    task_type="retrieval_document"  # or "retrieval_query" for queries
+                )
+                embedding = result['embedding']
+                # Ensure the result has the correct dimension (384)
+                if len(embedding) != self.dimension:
+                    # If dimensions don't match, truncate or pad as needed
+                    if len(embedding) > self.dimension:
+                        embedding = embedding[:self.dimension]
+                    else:
+                        embedding.extend([0.0] * (self.dimension - len(embedding)))
+                return embedding
             except Exception as e:
-                logger.error(f"Local embedding failed: {e}")
+                logger.warning(f"Gemini embedding failed: {e}")
 
         # If all methods fail, return a zero vector (this should ideally not happen in production)
         logger.error("All embedding methods failed, returning zero vector")
@@ -100,14 +167,40 @@ class EmbeddingClient:
         Returns:
             List of embedding vectors
         """
-        # Try OpenAI first if available
+        # Try local model first to ensure correct dimensions (384) that match the Qdrant collection
+        if self.local_model:
+            try:
+                embeddings = self.local_model.encode(texts)
+                results = [embedding.tolist() for embedding in embeddings]
+                # Ensure all results have the correct dimension
+                for i, result in enumerate(results):
+                    if len(result) != self.dimension:
+                        # If dimensions don't match, truncate or pad as needed
+                        if len(result) > self.dimension:
+                            results[i] = result[:self.dimension]
+                        else:
+                            results[i].extend([0.0] * (self.dimension - len(result)))
+                return results
+            except Exception as e:
+                logger.warning(f"Local batch embedding failed: {e}")
+
+        # Try OpenAI next if available
         if self.openai_client:
             try:
                 response = self.openai_client.embeddings.create(
                     input=texts,
                     model=self.model_name
                 )
-                return [item.embedding for item in response.data]
+                results = [item.embedding for item in response.data]
+                # Ensure all results have the correct dimension
+                for i, result in enumerate(results):
+                    if len(result) != self.dimension:
+                        # If dimensions don't match, truncate or pad as needed
+                        if len(result) > self.dimension:
+                            results[i] = result[:self.dimension]
+                        else:
+                            results[i].extend([0.0] * (self.dimension - len(result)))
+                return results
             except Exception as e:
                 logger.warning(f"OpenAI batch embedding failed: {e}")
 
@@ -118,17 +211,45 @@ class EmbeddingClient:
                     texts=texts,
                     model=self.model_name
                 )
-                return response.embeddings
+                results = response.embeddings
+                # Ensure all results have the correct dimension
+                for i, result in enumerate(results):
+                    if len(result) != self.dimension:
+                        # If dimensions don't match, truncate or pad as needed
+                        if len(result) > self.dimension:
+                            results[i] = result[:self.dimension]
+                        else:
+                            results[i].extend([0.0] * (self.dimension - len(result)))
+                return results
             except Exception as e:
                 logger.warning(f"Cohere batch embedding failed: {e}")
 
-        # Fall back to local model
-        if self.local_model:
+        # Try Gemini last (with dimension adjustment)
+        if self.gemini_api_key:
             try:
-                embeddings = self.local_model.encode(texts)
-                return [embedding.tolist() for embedding in embeddings]
+                # Configure the API
+                genai.configure(api_key=self.gemini_api_key)
+
+                # Process embeddings one by one since genai.embed_content doesn't support batch
+                embeddings = []
+                for text in texts:
+                    result = genai.embed_content(
+                        model="models/text-embedding-004",  # Google's latest text embedding model
+                        content=text,
+                        task_type="retrieval_document"  # or "retrieval_query" for queries
+                    )
+                    embedding = result['embedding']
+                    # Ensure the result has the correct dimension (384)
+                    if len(embedding) != self.dimension:
+                        # If dimensions don't match, truncate or pad as needed
+                        if len(embedding) > self.dimension:
+                            embedding = embedding[:self.dimension]
+                        else:
+                            embedding.extend([0.0] * (self.dimension - len(embedding)))
+                    embeddings.append(embedding)
+                return embeddings
             except Exception as e:
-                logger.error(f"Local batch embedding failed: {e}")
+                logger.warning(f"Gemini batch embedding failed: {e}")
 
         # If all methods fail, return zero vectors
         logger.error("All batch embedding methods failed, returning zero vectors")
