@@ -1,6 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
+
 from ..models.user import User
+from ..database.crud.user import get_user as get_user_db
 
 
 async def get_user_by_id(db: AsyncSession, user_id: int) -> Optional[User]:
@@ -14,7 +16,4 @@ async def get_user_by_id(db: AsyncSession, user_id: int) -> Optional[User]:
     Returns:
         User object if found, None otherwise
     """
-    # This is a placeholder implementation
-    # In a real implementation, you would query the database
-    # For now, return None to allow the app to start
-    return None
+    return await get_user_db(db, user_id)

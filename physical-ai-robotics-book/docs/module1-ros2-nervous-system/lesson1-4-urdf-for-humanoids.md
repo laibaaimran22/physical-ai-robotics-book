@@ -4,8 +4,14 @@ title: "Understanding URDF for Humanoid Robotics"
 ---
 
 import ChapterTranslator from '@site/src/components/Translation/ChapterTranslator';
+import ChapterPersonalization from '@site/src/components/Personalization/ChapterPersonalization';
 
 <ChapterTranslator>
+
+<ChapterPersonalization
+  chapterId="module1-lesson4-urdf-for-humanoids"
+  chapterTitle="Understanding URDF for Humanoid Robotics"
+/>
 
 # Understanding URDF for Humanoid Robotics
 

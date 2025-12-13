@@ -1,4 +1,4 @@
-# Website
+# Physical AI and Humanoid Robotics Book
 
 This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
 
@@ -15,6 +15,17 @@ yarn start
 ```
 
 This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
+
+## Backend Configuration
+
+This project requires a backend API server to handle authentication and personalization features. Make sure your FastAPI backend server is running:
+
+```bash
+# In your backend directory
+uvicorn main:app --reload --port 8000
+```
+
+The frontend expects the backend to be available at `http://127.0.0.1:8000` by default. To change this, update the `BACKEND_URL` in `src/config/api.ts`.
 
 ## Build
 

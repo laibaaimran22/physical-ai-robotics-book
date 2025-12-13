@@ -4,8 +4,14 @@ title: "ROS 2 Nodes, Topics, and Services in Practice"
 ---
 
 import ChapterTranslator from '@site/src/components/Translation/ChapterTranslator';
+import ChapterPersonalization from '@site/src/components/Personalization/ChapterPersonalization';
 
 <ChapterTranslator>
+
+<ChapterPersonalization
+  chapterId="module1-lesson2-nodes-topics-services"
+  chapterTitle="ROS 2 Nodes, Topics, and Services in Practice"
+/>
 
 # ROS 2 Nodes, Topics, and Services in Practice
 

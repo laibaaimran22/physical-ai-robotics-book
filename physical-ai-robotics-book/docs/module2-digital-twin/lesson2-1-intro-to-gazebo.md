@@ -4,8 +4,14 @@ title: "Introduction to Gazebo for Robot Simulation"
 ---
 
 import ChapterTranslator from '@site/src/components/Translation/ChapterTranslator';
+import ChapterPersonalization from '@site/src/components/Personalization/ChapterPersonalization';
 
 <ChapterTranslator>
+
+<ChapterPersonalization
+  chapterId="module2-lesson1-intro-to-gazebo"
+  chapterTitle="Introduction to Gazebo for Robot Simulation"
+/>
 
 
 # Introduction to Gazebo for Robot Simulation

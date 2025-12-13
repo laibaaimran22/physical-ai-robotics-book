@@ -12,15 +12,24 @@ from ..api.deps import get_optional_user
 router = APIRouter()
 
 
+class UserBackgroundRequest(BaseModel):
+    software_background_level: Optional[str] = None
+    hardware_background_level: Optional[str] = None
+    preferred_languages: Optional[str] = None
+    learning_goals: Optional[str] = None
+
+
 class RAGQueryRequest(BaseModel):
     query: str
     top_k: int = Query(5, ge=1, le=20, description="Number of results to retrieve")
     use_langchain: bool = Query(False, description="Whether to use LangChain-based RAG (if available)")
+    user_background: Optional[UserBackgroundRequest] = None
 
 
 class RAGQueryWithSelectedTextRequest(BaseModel):
     query: str
     selected_text: str
+    user_background: Optional[UserBackgroundRequest] = None
 
 
 @router.post("/rag/query")
@@ -35,14 +44,44 @@ async def rag_query(
     service = get_rag_service(db)
     user_id = current_user.id if current_user else None
 
+    # Prepare user background information for personalization
+    user_background = None
+    if current_user:
+        # Use user's profile information if available
+        user_background = {
+            "software_background_level": current_user.software_background_level,
+            "hardware_background_level": current_user.hardware_background_level,
+            "preferred_languages": current_user.preferred_languages,
+            "learning_goals": current_user.learning_goals
+        }
+    elif request.user_background:
+        # Use background information from request if user is not authenticated
+        user_background = request.user_background.dict()
+
     try:
         result = await service.query_rag(
             query=request.query,
             user_id=user_id,
+            user_background=user_background,
             top_k=request.top_k
         )
         return result
     except Exception as e:
+        error_msg = str(e)
+        # Log the full error for debugging
+        import logging
+        logging.error(f"Error in rag_query endpoint: {error_msg}", exc_info=True)
+
+        # Check if it's an API rate limit error
+        if "429" in error_msg or "rate limit" in error_msg.lower() or "exceeded" in error_msg.lower():
+            return {
+                "response": "The AI service is currently experiencing high demand. Please try again in a few moments.",
+                "sources": [],
+                "response_time_ms": 0,
+                "tokens_used": 0,
+                "warning": "Rate limit exceeded - using fallback response"
+            }
+
         raise HTTPException(
             status_code=500,
             detail=f"Error processing RAG query: {str(e)}"
@@ -61,14 +100,45 @@ async def rag_query_with_selected_text(
     service = get_rag_service(db)
     user_id = current_user.id if current_user else None
 
+    # Prepare user background information for personalization
+    user_background = None
+    if current_user:
+        # Use user's profile information if available
+        user_background = {
+            "software_background_level": current_user.software_background_level,
+            "hardware_background_level": current_user.hardware_background_level,
+            "preferred_languages": current_user.preferred_languages,
+            "learning_goals": current_user.learning_goals
+        }
+    elif request.user_background:
+        # Use background information from request if user is not authenticated
+        user_background = request.user_background.dict()
+
     try:
         result = await service.query_with_selected_text(
             query=request.query,
             selected_text=request.selected_text,
-            user_id=user_id
+            user_id=user_id,
+            user_background=user_background
         )
         return result
     except Exception as e:
+        error_msg = str(e)
+        # Log the full error for debugging
+        import logging
+        logging.error(f"Error in rag_query_with_selected_text endpoint: {error_msg}", exc_info=True)
+
+        # Check if it's an API rate limit error
+        if "429" in error_msg or "rate limit" in error_msg.lower() or "exceeded" in error_msg.lower():
+            return {
+                "response": "The AI service is currently experiencing high demand. Please try again in a few moments.",
+                "sources": [],
+                "selected_text_used": request.selected_text,
+                "response_time_ms": 0,
+                "tokens_used": 0,
+                "warning": "Rate limit exceeded - using fallback response"
+            }
+
         raise HTTPException(
             status_code=500,
             detail=f"Error processing RAG query with selected text: {str(e)}"
@@ -101,6 +171,11 @@ async def semantic_search(
             "content_type": content_type
         }
     except Exception as e:
+        error_msg = str(e)
+        # Log the full error for debugging
+        import logging
+        logging.error(f"Error in semantic_search endpoint: {error_msg}", exc_info=True)
+
         raise HTTPException(
             status_code=500,
             detail=f"Error performing semantic search: {str(e)}"
@@ -133,6 +208,11 @@ async def hybrid_search(
             "top_k": top_k
         }
     except Exception as e:
+        error_msg = str(e)
+        # Log the full error for debugging
+        import logging
+        logging.error(f"Error in hybrid_search endpoint: {error_msg}", exc_info=True)
+
         raise HTTPException(
             status_code=500,
             detail=f"Error performing hybrid search: {str(e)}"

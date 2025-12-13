@@ -22,12 +22,27 @@ except ImportError:
     pass
 
 if not GEMINI_API_KEY:
-    raise ValueError("GOOGLE_GEMINI_API_KEY or GEMINI_API_KEY environment variable or setting is required")
+    print("WARNING: No GEMINI_API_KEY found. Agent functionality will not work.")
+    # Create a mock client that returns error messages when called
+    class MockClient:
+        async def chat(self, **kwargs):
+            raise Exception("No API key configured - chat functionality unavailable")
 
-client = openai.AsyncOpenAI(
-    api_key=GEMINI_API_KEY,
-    base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
-)
+        class Chat:
+            def completions(self):
+                return self
+
+            async def create(self, **kwargs):
+                raise Exception("No API key configured - chat functionality unavailable")
+
+        completions = Chat()
+
+    client = MockClient()
+else:
+    client = openai.AsyncOpenAI(
+        api_key=GEMINI_API_KEY,
+        base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+    )
 
 
 class Agent:
@@ -42,6 +57,12 @@ class Runner:
     @staticmethod
     async def run_async(starting_agent: Agent, input_message: str):
         try:
+            # Check if we're using a mock client (no API key)
+            if hasattr(starting_agent.openai_client, '__class__') and 'Mock' in starting_agent.openai_client.__class__.__name__:
+                # Return a helpful message when no API key is configured
+                final_output = "Chat functionality is currently unavailable. Please try again later."
+                return type('Result', (), {'final_output': final_output})
+
             # Combine instructions with the user input
             messages = [
                 {"role": "system", "content": starting_agent.instructions},
@@ -56,9 +77,13 @@ class Runner:
             )
 
             final_output = response.choices[0].message.content
-            return type('Result', (), {'final_output': final_output})()
+            return type('Result', (), {'final_output': final_output})
         except Exception as e:
-            raise e
+            error_msg = str(e)
+            if "No API key configured" in error_msg:
+                return type('Result', (), {'final_output': "Chat functionality is currently unavailable. Please try again later."})
+            else:
+                raise e
 
     @staticmethod
     def run_sync(starting_agent: Agent, input_message: str):
@@ -71,12 +96,29 @@ class Runner:
 
 
 # Initialize the agent once (not on every request)
-agent = Agent(
-    name="Assistant Agent",
-    instructions="You're a helpful assistant for the Physical AI & Humanoid Robotics book. Answer questions about the book content and related topics.",
-    model="gemini-pro-latest",  # Using the model name for OpenAI-compatible endpoint
-    openai_client=client,
-)
+try:
+    agent = Agent(
+        name="Assistant Agent",
+        instructions="You're a helpful assistant for the Physical AI & Humanoid Robotics book. Answer questions about the book content and related topics.",
+        model="gemini-pro-latest",  # Using the model name for OpenAI-compatible endpoint
+        openai_client=client,
+    )
+except Exception as e:
+    print(f"Error initializing agent: {e}")
+    # Create a mock agent that returns an error message
+    class MockAgent:
+        def __init__(self, name, instructions, model, openai_client):
+            self.name = name
+            self.instructions = instructions
+            self.model = model
+            self.openai_client = openai_client
+
+    agent = MockAgent(
+        name="Assistant Agent",
+        instructions="You're a helpful assistant for the Physical AI & Humanoid Robotics book. Answer questions about the book content and related topics.",
+        model="gemini-pro-latest",
+        openai_client=client,
+    )
 
 
 class AgentRequest(BaseModel):

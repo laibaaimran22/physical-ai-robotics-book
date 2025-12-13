@@ -1,0 +1,19 @@
+#!/usr/bin/env python3
+"""Debug server to see full error output"""
+import uvicorn
+import sys
+import os
+from pathlib import Path
+
+# Add the src directory to the Python path so we can import modules
+sys.path.insert(0, str(Path(__file__).parent))
+
+if __name__ == "__main__":
+    # Start the uvicorn server with the correct module path
+    uvicorn.run(
+        "src.main:app",
+        host="127.0.0.1",  # Use 127.0.0.1 instead of 0.0.0.0 for local testing
+        port=8000,
+        reload=False,  # Disable reload to see errors more clearly
+        log_level="debug"
+    )

@@ -35,9 +35,6 @@ const config: Config = {
     locales: ['en'],
   },
 
-  clientModules: [
-    require.resolve('./src/components/Root.tsx'),
-  ],
 
   presets: [
     [
@@ -92,6 +89,8 @@ const config: Config = {
           label: 'Book',
         },
         {to: '/blog', label: 'Blog', position: 'left'},
+        {to: '/signin', label: 'Sign In', position: 'right'},
+        {to: '/signup', label: 'Sign Up', position: 'right'},
         {
           href: 'https://github.com/laibaaimran22/physical-ai-robotics-book', // Updated to actual GitHub repo URL
           label: 'GitHub',
@@ -149,6 +148,11 @@ const config: Config = {
       darkTheme: prismThemes.dracula,
     },
   } satisfies Preset.ThemeConfig,
+
+  // Custom fields to pass environment variables to the client
+  customFields: {
+    backendUrl: process.env.REACT_APP_BACKEND_URL || 'http://127.0.0.1:8000',
+  },
 };
 
 export default config;

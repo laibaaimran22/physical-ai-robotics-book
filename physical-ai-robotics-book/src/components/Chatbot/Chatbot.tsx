@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import clsx from 'clsx';
 import styles from './Chatbot.module.css';
 import ChatbotIcon from './ChatbotIcon';
+import { useAuth } from '../../hooks/useAuth';
+import API_CONFIG from '../../config/api';
 
 interface Message {
   id: string;
@@ -24,6 +26,9 @@ const Chatbot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedText, setSelectedText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const auth = useAuth();
+  const user = auth?.user || null;
+  const isAuthenticated = auth?.isAuthenticated || false;
 
   // Function to get selected text from the page
   const getSelectedText = () => {
@@ -72,15 +77,26 @@ const Chatbot: React.FC = () => {
       // Determine which API endpoint to use based on context
       const endpoint = contextText ? '/api/v1/rag/query-selected' : '/api/v1/rag/query';
 
-      const requestBody = contextText
+      // Prepare the request body with user background information if authenticated
+      let requestBody: any = contextText
         ? {
             query: inputValue || `About: ${contextText.substring(0, 100)}...`,
             selected_text: contextText
           }
         : { query: userMessage };
 
+      // Add user background information if user is authenticated
+      if (isAuthenticated && user) {
+        requestBody.user_background = {
+          software_background_level: user.software_background_level,
+          hardware_background_level: user.hardware_background_level,
+          preferred_languages: user.preferred_languages,
+          learning_goals: user.learning_goals
+        };
+      }
+
       // Call the backend RAG API
-      const response = await fetch(`http://127.0.0.1:8000${endpoint}`, {
+      const response = await fetch(`${API_CONFIG.BACKEND_URL}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -89,7 +105,14 @@ const Chatbot: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`);
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          // If response is not JSON, create a generic error
+          errorData = { detail: `API request failed with status ${response.status} - ${response.statusText}` };
+        }
+        throw new Error(errorData.detail || `API request failed with status ${response.status}`);
       }
 
       const data = await response.json();
@@ -106,9 +129,18 @@ const Chatbot: React.FC = () => {
     } catch (error) {
       console.error('Error fetching response:', error);
 
+      let errorMessageContent = 'Sorry, I encountered an error processing your request. Please try again.';
+      if (error instanceof Error) {
+        errorMessageContent = error.message;
+      } else if (typeof error === 'string') {
+        errorMessageContent = error;
+      } else if (typeof error === 'object' && error !== null && 'message' in error) {
+        errorMessageContent = (error as any).message || errorMessageContent;
+      }
+
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: 'Sorry, I encountered an error processing your request. Please try again.',
+        content: errorMessageContent,
         role: 'assistant',
         timestamp: new Date(),
       };

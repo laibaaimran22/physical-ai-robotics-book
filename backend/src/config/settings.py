@@ -39,7 +39,7 @@ class Settings(BaseSettings):
 
     # LLM Configuration
     LLM_MODEL: str = "gpt-3.5-turbo"
-    GEMINI_MODEL_NAME: str = "gemini-pro-latest"
+    GEMINI_MODEL_NAME: str = "gemini-1.5-flash"
     TEMPERATURE: float = 0.3
 
     # Embedding Configuration

@@ -4,9 +4,14 @@ title: "Cognitive Planning: Translating Natural Language to Robot Actions"
 ---
 
 import ChapterTranslator from '@site/src/components/Translation/ChapterTranslator';
+import ChapterPersonalization from '@site/src/components/Personalization/ChapterPersonalization';
 
 <ChapterTranslator>
 
+<ChapterPersonalization
+  chapterId="cognitive-planning-translating-natural-language-to-robot-actions"
+  chapterTitle="Cognitive Planning: Translating Natural Language to Robot Actions"
+/>
 # Lesson 4.2: Cognitive Planning: Translating Natural Language to Robot Actions
 
 ## Overview

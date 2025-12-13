@@ -8,9 +8,16 @@ from src.utils.security import get_password_hash
 
 async def create_user(db: AsyncSession, user: User) -> User:
     """Create a new user."""
-    # Hash the password before storing
+    # Hash the password before storing if it's not already hashed
     if hasattr(user, 'hashed_password') and user.hashed_password:
-        user.hashed_password = get_password_hash(user.hashed_password)
+        # Check if password is already hashed - it should be 60+ characters for bcrypt or 96 for our pbkdf2 fallback
+        # Bcrypt hashes start with $2b$, our fallback hashes are 96 hex characters (32 salt + 64 hash)
+        is_already_hashed = (
+            user.hashed_password.startswith('$2b$') or  # bcrypt
+            len(user.hashed_password) == 96  # our pbkdf2 fallback (32 hex chars salt + 64 hex chars hash)
+        )
+        if not is_already_hashed:
+            user.hashed_password = get_password_hash(user.hashed_password)
 
     db.add(user)
     await db.commit()

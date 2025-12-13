@@ -3,8 +3,14 @@ sidebar_label: 'Lesson 5.4: Future Trends in Physical AI and Humanoid Robotics'
 ---
 
 import ChapterTranslator from '@site/src/components/Translation/ChapterTranslator';
+import ChapterPersonalization from '@site/src/components/Personalization/ChapterPersonalization';
 
 <ChapterTranslator>
+
+<ChapterPersonalization
+  chapterId="module5-lesson4-future-trends"
+  chapterTitle="Lesson 5.4: Future Trends in Physical AI and Humanoid Robotics"
+/>
 
 # Lesson 5.4: Future Trends in Physical AI and Humanoid Robotics
 

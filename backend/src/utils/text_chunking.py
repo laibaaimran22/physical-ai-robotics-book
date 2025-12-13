@@ -4,15 +4,11 @@ from tokenizers import Tokenizer
 from tokenizers.models import BPE
 from tokenizers.trainers import BpeTrainer
 from tokenizers.pre_tokenizers import Whitespace
-import nltk
-from nltk.tokenize import sent_tokenize
 
 
-# Download required NLTK data
-try:
-    nltk.data.find('tokenizers/punkt')
-except LookupError:
-    nltk.download('punkt')
+# Note: NLTK punkt tokenizer required for sentence tokenization
+# In production environments, ensure 'punkt' is pre-downloaded
+# This can be done in the Dockerfile or setup scripts
 
 
 def count_tokens(text: str) -> int:
@@ -38,7 +34,15 @@ def chunk_text_by_tokens(text: str, max_tokens: int = 400, min_tokens: int = 100
         List of text chunks
     """
     # Split text into sentences first
-    sentences = sent_tokenize(text)
+    try:
+        # Import nltk locally to avoid import-time downloads
+        import nltk
+        from nltk.tokenize import sent_tokenize
+        sentences = sent_tokenize(text)
+    except (ImportError, LookupError):
+        # Fallback to simple sentence splitting if punkt tokenizer is not available
+        sentences = re.split(r'[.!?]+', text)
+        sentences = [s.strip() for s in sentences if s.strip()]
 
     chunks = []
     current_chunk = ""

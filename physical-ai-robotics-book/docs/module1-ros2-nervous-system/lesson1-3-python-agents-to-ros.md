@@ -4,8 +4,14 @@ title: "Bridging Python Agents to ROS Controllers with rclpy"
 ---
 
 import ChapterTranslator from '@site/src/components/Translation/ChapterTranslator';
+import ChapterPersonalization from '@site/src/components/Personalization/ChapterPersonalization';
 
 <ChapterTranslator>
+
+<ChapterPersonalization
+  chapterId="module1-lesson3-python-agents-to-ros"
+  chapterTitle="Bridging Python Agents to ROS Controllers with rclpy"
+/>
 
 
 # Bridging Python Agents to ROS Controllers with rclpy

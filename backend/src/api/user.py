@@ -220,9 +220,65 @@ async def get_user_profile(
         "id": current_user.id,
         "email": current_user.email,
         "full_name": current_user.full_name,
+        "software_background_level": current_user.software_background_level,
+        "hardware_background_level": current_user.hardware_background_level,
+        "preferred_languages": current_user.preferred_languages,
+        "learning_goals": current_user.learning_goals,
         "is_active": current_user.is_active,
         "is_admin": current_user.is_admin,
         "created_at": current_user.created_at,
         "updated_at": current_user.updated_at,
         "last_login": current_user.last_login
+    }
+
+
+@router.put("/profile")
+async def update_user_profile(
+    full_name: str = None,
+    software_background_level: str = None,
+    hardware_background_level: str = None,
+    preferred_languages: str = None,
+    learning_goals: str = None,
+    db: AsyncSession = Depends(get_db),
+    current_user: Optional[User] = Depends(get_optional_user)
+):
+    """
+    Update user profile information.
+    """
+    if not current_user:
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication required"
+        )
+
+    from src.database.crud.user import update_user
+    updated_user = await update_user(
+        db,
+        current_user.id,
+        full_name=full_name,
+        software_background_level=software_background_level,
+        hardware_background_level=hardware_background_level,
+        preferred_languages=preferred_languages,
+        learning_goals=learning_goals
+    )
+
+    if not updated_user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    return {
+        "id": updated_user.id,
+        "email": updated_user.email,
+        "full_name": updated_user.full_name,
+        "software_background_level": updated_user.software_background_level,
+        "hardware_background_level": updated_user.hardware_background_level,
+        "preferred_languages": updated_user.preferred_languages,
+        "learning_goals": updated_user.learning_goals,
+        "is_active": updated_user.is_active,
+        "is_admin": updated_user.is_admin,
+        "created_at": updated_user.created_at,
+        "updated_at": updated_user.updated_at,
+        "last_login": updated_user.last_login
     }
