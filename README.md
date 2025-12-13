@@ -56,26 +56,6 @@ A comprehensive educational platform featuring a Retrieval-Augmented Generation 
    ```
 
 2. Configure your environment variables in `.env`:
-   ```env
-   # Database Configuration - Neon Serverless Postgres
-   DATABASE_URL=postgresql://neondb_owner:npg_WCvOq9HsUAJ1@ep-misty-morning-ad36vr3e-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
-
-   # Qdrant Configuration - Qdrant Cloud Free Tier
-   QDRANT_URL=https://649cf293-7c71-4831-89a5-fda46a3f47cd.us-east4-0.gcp.cloud.qdrant.io
-   QDRANT_API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.xwgQykUtge_6CQ2UTRTDM3KaegYCNOO7Pnm7iAnP_ZQ
-
-   # Cohere API Configuration
-   COHERE_API_KEY=4UwVuDtLsu8kjIIseBiPu6oX535pudfF9DgqmAfU
-
-   # OpenAI API Configuration (optional, for fallback)
-   OPENAI_API_KEY=your_openai_api_key_here
-   ```
-
-3. Start the backend server:
-   ```bash
-   cd backend
-   python -m uvicorn src.main:app --host 0.0.0.0 --port 8000
-   ```
 
 ### Frontend Setup
 
