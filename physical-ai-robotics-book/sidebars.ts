@@ -17,8 +17,8 @@ const sidebars: SidebarsConfig = {
   docs: [
     {
       type: 'category',
-      label: 'Introduction',
-      items: ['intro'],
+      label: 'Getting Started',
+      items: ['intro', 'personalization-example'],
       collapsed: false,
     },
     {

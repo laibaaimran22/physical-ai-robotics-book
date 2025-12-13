@@ -3,8 +3,14 @@ sidebar_label: 'Lesson 4.3: Object Recognition and Manipulation for VLA Systems'
 ---
 
 import ChapterTranslator from '@site/src/components/Translation/ChapterTranslator';
+import ChapterPersonalization from '@site/src/components/Personalization/ChapterPersonalization';
 
 <ChapterTranslator>
+
+<ChapterPersonalization
+  chapterId="module4-lesson3-object-recognition-manipulation"
+  chapterTitle="Lesson 4.3: Object Recognition and Manipulation for VLA Systems"
+/>
 
 # Lesson 4.3: Object Recognition and Manipulation for VLA Systems
 

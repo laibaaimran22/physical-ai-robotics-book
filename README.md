@@ -56,6 +56,13 @@ A comprehensive educational platform featuring a Retrieval-Augmented Generation 
    ```
 
 2. Configure your environment variables in `.env`:
+ 
+
+3. Start the backend server:
+   ```bash
+   cd backend
+   python -m uvicorn src.main:app --host 0.0.0.0 --port 8000
+   ```
 
 ### Frontend Setup
 

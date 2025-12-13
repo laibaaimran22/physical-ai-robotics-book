@@ -12,6 +12,7 @@ from ..models.chat_history import ChatHistory
 from ..database.crud.rag_query import create_rag_query
 from ..database.crud.chat_history import create_chat_history
 from ..config.settings import settings
+from .personalization_service import get_personalization_service, UserProfile
 
 logger = logging.getLogger(__name__)
 
@@ -21,14 +22,16 @@ class RAGService:
 
     def __init__(self, db: AsyncSession):
         self.db = db
+        self.personalization_service = get_personalization_service()
 
-    async def query_rag(self, query: str, user_id: Optional[int] = None, top_k: int = 5) -> Dict[str, Any]:
+    async def query_rag(self, query: str, user_id: Optional[int] = None, user_background: Optional[Dict[str, Any]] = None, top_k: int = 5) -> Dict[str, Any]:
         """
         Query the RAG system to get contextually relevant responses.
 
         Args:
             query: User's query
             user_id: ID of the user making the query (optional)
+            user_background: User's background information for personalization (optional)
             top_k: Number of top results to retrieve from vector store
 
         Returns:
@@ -52,31 +55,53 @@ class RAGService:
             # Prepare context from similar chunks
             context = "\n\n".join([chunk["content"] for chunk in similar_chunks])
 
-            # Prepare the prompt with context
-            prompt = f"""
-            Based on the following context, please answer the question.
-            If the context doesn't contain enough information, say so.
+            print(f"DEBUG RAG: Creating personalized prompt with user_background: {user_background}")
+            # Prepare the prompt with context and user background for personalization
+            prompt = self._create_personalized_prompt(query, context, user_background)
+            print(f"DEBUG RAG: Generated personalized prompt, length: {len(prompt)}")
 
-            Context:
-            {context}
-
-            Question: {query}
-
-            Answer:
-            """
-
-            # Generate response using OpenAI, Google Gemini, or fallback
-            import openai
+            # Generate response using Google Gemini (native API), or fallback
             response_text = ""
 
-            # Check if we have OpenAI API key first
-            if settings.OPENAI_API_KEY:
+            # Check if we have Google Gemini API key first (prioritize Gemini)
+            if (settings.GOOGLE_GEMINI_API_KEY or settings.GEMINI_API_KEY):
                 try:
+                    # Use the native Google Generative AI library instead of OpenAI-compatible endpoint
+                    # to avoid model name conflicts
+                    from ..core.llm_client_gemini import gemini_client
+
+                    print(f"DEBUG RAG: gemini_client is None: {gemini_client is None}")
+                    if gemini_client:
+                        print(f"DEBUG RAG: gemini_client.model is None: {gemini_client.model is None}")
+                        if hasattr(gemini_client, 'model') and gemini_client.model:
+                            print(f"DEBUG RAG: gemini_client model name: {gemini_client.model.model_name}")
+
+                        response_text = gemini_client.generate_response(prompt, context)
+                        print(f"DEBUG RAG: Generated response using gemini_client: {bool(response_text)}")
+
+                        # If the response indicates an error, don't treat it as success
+                        if "error" in response_text.lower() or "couldn't generate" in response_text.lower():
+                            response_text = ""
+                            print(f"DEBUG RAG: Response contained error, setting to empty: {response_text}")
+                    else:
+                        print("DEBUG RAG: gemini_client is None, cannot generate response")
+                        response_text = ""
+
+                except Exception as e:
+                    print(f"DEBUG RAG: Gemini API request failed: {e}")
+                    logger.error(f"Gemini API request failed: {e}")
+                    response_text = ""
+
+            # Only try OpenAI if Gemini is not configured or failed
+            # (Remove this section if you want Gemini-only behavior)
+            if not response_text and settings.OPENAI_API_KEY and not (settings.GOOGLE_GEMINI_API_KEY or settings.GEMINI_API_KEY):
+                try:
+                    import openai
                     client = openai.AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
                     response = await client.chat.completions.create(
                         model=settings.LLM_MODEL,
                         messages=[
-                            {"role": "system", "content": "You are an expert assistant for the Physical AI and Humanoid Robotics book. Answer questions based only on the provided context."},
+                            {"role": "system", "content": "You are an expert assistant for the Physical AI and Humanoid Robotics book. Answer questions based only on the provided context, adapting your explanation to the user's background and experience level."},
                             {"role": "user", "content": prompt}
                         ],
                         max_tokens=500,
@@ -85,32 +110,6 @@ class RAGService:
                     response_text = response.choices[0].message.content
                 except Exception as e:
                     logger.error(f"OpenAI request failed: {e}")
-                    response_text = ""
-
-            # If no OpenAI key or OpenAI failed, try Gemini
-            if not response_text and (settings.GOOGLE_GEMINI_API_KEY or settings.GEMINI_API_KEY):
-                try:
-                    gemini_api_key = settings.GOOGLE_GEMINI_API_KEY or settings.GEMINI_API_KEY
-                    client = openai.AsyncOpenAI(
-                        api_key=gemini_api_key,
-                        base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
-                    )
-
-                    # Use the specific model name from settings or default to gemini-pro
-                    model_name = settings.GEMINI_MODEL_NAME or "gemini-pro"
-
-                    response = await client.chat.completions.create(
-                        model=model_name,
-                        messages=[
-                            {"role": "system", "content": "You are an expert assistant for the Physical AI and Humanoid Robotics book. Answer questions based only on the provided context."},
-                            {"role": "user", "content": prompt}
-                        ],
-                        max_tokens=500,
-                        temperature=settings.TEMPERATURE
-                    )
-                    response_text = response.choices[0].message.content
-                except Exception as e:
-                    logger.error(f"Gemini API request failed: {e}")
                     # Fallback response
                     response_text = f"I found some relevant information but couldn't generate a complete response: {str(e)}"
 
@@ -122,27 +121,37 @@ class RAGService:
         response_time_ms = int((time.time() - start_time) * 1000)
         tokens_used = len(response_text.split())
 
-        # Create RAG query record for analytics
-        rag_query = RAGQuery(
-            user_id=user_id,
-            query_text=query,
-            response_text=response_text,
-            context_chunks=similar_chunks,
-            tokens_used=tokens_used,
-            response_time_ms=response_time_ms,
-            is_hallucination=False  # This would be determined by a more sophisticated check
-        )
+        # Create RAG query record for analytics (with error handling)
+        try:
+            rag_query = RAGQuery(
+                user_id=user_id,
+                query_text=query,
+                response_text=response_text,
+                context_chunks=similar_chunks,
+                tokens_used=tokens_used,
+                response_time_ms=response_time_ms,
+                is_hallucination=False  # This would be determined by a more sophisticated check
+            )
 
-        await create_rag_query(self.db, rag_query)
+            await create_rag_query(self.db, rag_query)
+        except Exception as e:
+            logger.error(f"Failed to save RAG query to database: {e}")
+            # Continue without saving the query record to avoid breaking the response
+            pass
 
         # Add to chat history
-        chat_history = ChatHistory(
-            user_id=user_id,
-            session_id=f"rag_session_{int(time.time())}",  # Simple session ID
-            role="assistant",
-            content=response_text
-        )
-        await create_chat_history(self.db, chat_history)
+        try:
+            chat_history = ChatHistory(
+                user_id=user_id,
+                session_id=f"rag_session_{int(time.time())}",  # Simple session ID
+                role="assistant",
+                content=response_text
+            )
+            await create_chat_history(self.db, chat_history)
+        except Exception as e:
+            logger.error(f"Failed to save chat history to database: {e}")
+            # Continue without saving the chat history to avoid breaking the response
+            pass
 
         return {
             "response": response_text,
@@ -151,7 +160,53 @@ class RAGService:
             "tokens_used": tokens_used
         }
 
-    async def query_with_selected_text(self, query: str, selected_text: str, user_id: Optional[int] = None) -> Dict[str, Any]:
+    def _create_personalized_prompt(self, query: str, context: str, user_background: Optional[Dict[str, Any]] = None) -> str:
+        """
+        Create a personalized prompt based on user background information.
+
+        Args:
+            query: User's query
+            context: Retrieved context from vector store
+            user_background: User's background information for personalization
+
+        Returns:
+            Personalized prompt string
+        """
+        if not user_background:
+            # Default prompt if no user background
+            return f"""
+            Based on the following context, please answer the question.
+            If the context doesn't contain enough information, say so.
+
+            Context:
+            {context}
+
+            Question: {query}
+
+            Answer:
+            """
+
+        # Create a UserProfile object from the user_background dict
+        user_profile = UserProfile(
+            software_level=user_background.get("software_background_level", "beginner"),
+            hardware_level=user_background.get("hardware_background_level", "beginner"),
+            preferred_languages=user_background.get("preferred_languages", ""),
+            goals=user_background.get("learning_goals", "")
+        )
+
+        # Use the personalization service to create a tailored prompt
+        base_prompt = f"""
+        Based on the following context, please answer the question:
+
+        Context:
+        {context}
+
+        Question: {query}
+        """
+
+        return self.personalization_service.get_personalized_prompt(base_prompt, user_profile)
+
+    async def query_with_selected_text(self, query: str, selected_text: str, user_id: Optional[int] = None, user_background: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Query the RAG system with user-selected text as additional context.
 
@@ -159,6 +214,7 @@ class RAGService:
             query: User's query
             selected_text: Text selected by the user
             user_id: ID of the user making the query (optional)
+            user_background: User's background information for personalization (optional)
 
         Returns:
             Dictionary with response and context information
@@ -182,31 +238,53 @@ class RAGService:
         context = f"User-Selected Text: {selected_text}\n\nSimilar Content from Book:\n"
         context += "\n\n".join([f"- {chunk['content']}" for chunk in similar_chunks])
 
-        # Prepare the prompt with both selected text and similar chunks
-        prompt = f"""
-        Based on the user-selected text and additional similar content from the book, please answer the question.
-        Prioritize information from the selected text, but supplement with similar content if needed.
-        If the provided information doesn't contain enough details, say so.
+        print(f"DEBUG RAG 2: Creating personalized prompt with user_background: {user_background}")
+        # Prepare the prompt with both selected text and similar chunks, plus user background for personalization
+        prompt = self._create_personalized_prompt_with_selected_text(query, selected_text, context, user_background)
+        print(f"DEBUG RAG 2: Generated personalized prompt, length: {len(prompt)}")
 
-        {context}
-
-        Question: {query}
-
-        Answer:
-        """
-
-        # Generate response using OpenAI, Google Gemini, or fallback
-        import openai
+        # Generate response using Google Gemini (native API), or fallback
         response_text = ""
 
-        # Check if we have OpenAI API key first
-        if settings.OPENAI_API_KEY:
+        # Check if we have Google Gemini API key first (prioritize Gemini)
+        if (settings.GOOGLE_GEMINI_API_KEY or settings.GEMINI_API_KEY):
             try:
+                # Use the native Google Generative AI library instead of OpenAI-compatible endpoint
+                # to avoid model name conflicts
+                from ..core.llm_client_gemini import gemini_client
+
+                print(f"DEBUG RAG 2: gemini_client is None: {gemini_client is None}")
+                if gemini_client:
+                    print(f"DEBUG RAG 2: gemini_client.model is None: {gemini_client.model is None}")
+                    if hasattr(gemini_client, 'model') and gemini_client.model:
+                        print(f"DEBUG RAG 2: gemini_client model name: {gemini_client.model.model_name}")
+
+                    response_text = gemini_client.generate_response(prompt, context)
+                    print(f"DEBUG RAG 2: Generated response using gemini_client: {bool(response_text)}")
+
+                    # If the response indicates an error, don't treat it as success
+                    if "error" in response_text.lower() or "couldn't generate" in response_text.lower():
+                        response_text = ""
+                        print(f"DEBUG RAG 2: Response contained error, setting to empty: {response_text}")
+                else:
+                    print("DEBUG RAG 2: gemini_client is None, cannot generate response")
+                    response_text = ""
+
+            except Exception as e:
+                print(f"DEBUG RAG 2: Gemini API request failed: {e}")
+                logger.error(f"Gemini API request failed: {e}")
+                response_text = ""
+
+        # Only try OpenAI if Gemini is not configured or failed
+        # (Remove this section if you want Gemini-only behavior)
+        if not response_text and settings.OPENAI_API_KEY and not (settings.GOOGLE_GEMINI_API_KEY or settings.GEMINI_API_KEY):
+            try:
+                import openai
                 client = openai.AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
                 response = await client.chat.completions.create(
                     model=settings.LLM_MODEL,
                     messages=[
-                        {"role": "system", "content": "You are an expert assistant for the Physical AI and Humanoid Robotics book. Answer questions based on the user-selected text and additional context provided."},
+                        {"role": "system", "content": "You are an expert assistant for the Physical AI and Humanoid Robotics book. Answer questions based on the user-selected text and additional context provided, adapting your explanation to the user's background and experience level."},
                         {"role": "user", "content": prompt}
                     ],
                     max_tokens=500,
@@ -215,32 +293,6 @@ class RAGService:
                 response_text = response.choices[0].message.content
             except Exception as e:
                 logger.error(f"OpenAI request failed: {e}")
-                response_text = ""
-
-        # If no OpenAI key or OpenAI failed, try Gemini
-        if not response_text and (settings.GOOGLE_GEMINI_API_KEY or settings.GEMINI_API_KEY):
-            try:
-                gemini_api_key = settings.GOOGLE_GEMINI_API_KEY or settings.GEMINI_API_KEY
-                client = openai.AsyncOpenAI(
-                    api_key=gemini_api_key,
-                    base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
-                )
-
-                # Use the specific model name from settings or default to gemini-pro
-                model_name = settings.GEMINI_MODEL_NAME or "gemini-pro"
-
-                response = await client.chat.completions.create(
-                    model=model_name,
-                    messages=[
-                        {"role": "system", "content": "You are an expert assistant for the Physical AI and Humanoid Robotics book. Answer questions based on the user-selected text and additional context provided."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    max_tokens=500,
-                    temperature=settings.TEMPERATURE
-                )
-                response_text = response.choices[0].message.content
-            except Exception as e:
-                logger.error(f"Gemini API request failed: {e}")
                 # Fallback response
                 response_text = f"I found relevant information but couldn't generate a complete response: {str(e)}"
 
@@ -252,27 +304,37 @@ class RAGService:
         response_time_ms = int((time.time() - start_time) * 1000)
         tokens_used = len(response_text.split())
 
-        # Create RAG query record
-        rag_query = RAGQuery(
-            user_id=user_id,
-            query_text=query,
-            response_text=response_text,
-            context_chunks=similar_chunks,
-            tokens_used=tokens_used,
-            response_time_ms=response_time_ms,
-            is_hallucination=False
-        )
+        # Create RAG query record (with error handling)
+        try:
+            rag_query = RAGQuery(
+                user_id=user_id,
+                query_text=query,
+                response_text=response_text,
+                context_chunks=similar_chunks,
+                tokens_used=tokens_used,
+                response_time_ms=response_time_ms,
+                is_hallucination=False
+            )
 
-        await create_rag_query(self.db, rag_query)
+            await create_rag_query(self.db, rag_query)
+        except Exception as e:
+            logger.error(f"Failed to save RAG query to database: {e}")
+            # Continue without saving the query record to avoid breaking the response
+            pass
 
         # Add to chat history
-        chat_history = ChatHistory(
-            user_id=user_id,
-            session_id=f"selected_text_session_{int(time.time())}",
-            role="assistant",
-            content=response_text
-        )
-        await create_chat_history(self.db, chat_history)
+        try:
+            chat_history = ChatHistory(
+                user_id=user_id,
+                session_id=f"selected_text_session_{int(time.time())}",
+                role="assistant",
+                content=response_text
+            )
+            await create_chat_history(self.db, chat_history)
+        except Exception as e:
+            logger.error(f"Failed to save chat history to database: {e}")
+            # Continue without saving the chat history to avoid breaking the response
+            pass
 
         return {
             "response": response_text,
@@ -281,6 +343,52 @@ class RAGService:
             "response_time_ms": response_time_ms,
             "tokens_used": tokens_used
         }
+
+    def _create_personalized_prompt_with_selected_text(self, query: str, selected_text: str, context: str, user_background: Optional[Dict[str, Any]] = None) -> str:
+        """
+        Create a personalized prompt based on user background information and selected text.
+
+        Args:
+            query: User's query
+            selected_text: Text selected by the user
+            context: Retrieved context from vector store
+            user_background: User's background information for personalization
+
+        Returns:
+            Personalized prompt string
+        """
+        if not user_background:
+            # Default prompt if no user background
+            return f"""
+            Based on the user-selected text and additional similar content from the book, please answer the question.
+            Prioritize information from the selected text, but supplement with similar content if needed.
+            If the provided information doesn't contain enough details, say so.
+
+            {context}
+
+            Question: {query}
+
+            Answer:
+            """
+
+        # Create a UserProfile object from the user_background dict
+        user_profile = UserProfile(
+            software_level=user_background.get("software_background_level", "beginner"),
+            hardware_level=user_background.get("hardware_background_level", "beginner"),
+            preferred_languages=user_background.get("preferred_languages", ""),
+            goals=user_background.get("learning_goals", "")
+        )
+
+        # Use the personalization service to create a tailored prompt
+        base_prompt = f"""
+        Based on the user-selected text and additional similar content from the book, please answer the question.
+
+        {context}
+
+        Question: {query}
+        """
+
+        return self.personalization_service.get_personalized_prompt(base_prompt, user_profile)
 
     async def semantic_search(self, query: str, top_k: int = 10, content_type: Optional[str] = None) -> List[Dict[str, Any]]:
         """

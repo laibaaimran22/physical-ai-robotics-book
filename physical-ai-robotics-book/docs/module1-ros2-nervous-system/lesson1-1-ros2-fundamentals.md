@@ -4,10 +4,16 @@ title: "Introduction to ROS 2 Fundamentals"
 ---
 
 import ChapterTranslator from '@site/src/components/Translation/ChapterTranslator';
+import ChapterPersonalization from '@site/src/components/Personalization/ChapterPersonalization';
 
 <ChapterTranslator>
 
- # Introduction to ROS 2 Fundamentals
+<ChapterPersonalization
+  chapterId="module1-lesson1-ros2-fundamentals"
+  chapterTitle="Introduction to ROS 2 Fundamentals"
+/>
+
+# Introduction to ROS 2 Fundamentals
 
 
 ## Overview

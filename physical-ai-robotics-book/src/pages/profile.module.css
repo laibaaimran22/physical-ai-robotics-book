@@ -1,0 +1,170 @@
+.profileContainer {
+  padding: 2rem 0;
+  min-height: 80vh;
+}
+
+.profileCard {
+  background: var(--ifm-card-background-color);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: var(--ifm-card-border-radius);
+  padding: 2rem;
+  box-shadow: var(--ifm-global-shadow-lw);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.profileTitle {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  color: var(--ifm-heading-color);
+}
+
+.userInfo, .backgroundInfo {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.userInfo h2, .backgroundInfo h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: var(--ifm-heading-color);
+}
+
+.userField, .backgroundField {
+  margin-bottom: 0.75rem;
+  padding: 0.25rem 0;
+}
+
+.userField strong, .backgroundField strong {
+  display: inline-block;
+  width: 180px;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.profileForm {
+  margin-top: 1rem;
+}
+
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.formLabel {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: var(--ifm-color-emphasis-800);
+}
+
+.formInput {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: var(--ifm-input-border-radius);
+  font-size: 1rem;
+  background-color: var(--ifm-input-background);
+  color: var(--ifm-font-color-base);
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 0 0 2px var(--ifm-color-primary-lightest);
+}
+
+.formTextarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.formActions {
+  margin-top: 1.5rem;
+  display: flex;
+  gap: 1rem;
+}
+
+.saveButton, .cancelButton {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--ifm-button-border-radius);
+  font-size: 1rem;
+  font-weight: var(--ifm-button-font-weight);
+  cursor: pointer;
+  transition: background-color var(--ifm-transition-fast) ease;
+}
+
+.saveButton {
+  background-color: var(--ifm-color-primary);
+  color: white;
+}
+
+.saveButton:hover {
+  background-color: var(--ifm-color-primary-dark);
+}
+
+.cancelButton {
+  background-color: var(--ifm-color-emphasis-200);
+  color: var(--ifm-font-color-base);
+}
+
+.cancelButton:hover {
+  background-color: var(--ifm-color-emphasis-300);
+}
+
+.editButton {
+  padding: 0.75rem 1.5rem;
+  background-color: var(--ifm-color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--ifm-button-border-radius);
+  font-size: 1rem;
+  font-weight: var(--ifm-button-font-weight);
+  cursor: pointer;
+  transition: background-color var(--ifm-transition-fast) ease;
+}
+
+.editButton:hover {
+  background-color: var(--ifm-color-primary-dark);
+}
+
+.signInLink {
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+  font-weight: var(--ifm-font-weight-semibold);
+}
+
+.signInLink:hover {
+  text-decoration: underline;
+}
+
+.successMessage {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 1rem;
+  border-radius: var(--ifm-card-border-radius);
+  border: 1px solid #c3e6cb;
+  margin-top: 1rem;
+}
+
+.errorMessage {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 1rem;
+  border-radius: var(--ifm-card-border-radius);
+  border: 1px solid #f5c6cb;
+  margin-top: 1rem;
+}
+
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 50vh;
+}
+
+@media (min-width: 997px) {
+  .profileContainer {
+    padding: 3rem 0;
+  }
+}

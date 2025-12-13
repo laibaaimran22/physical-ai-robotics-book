@@ -3,8 +3,14 @@ sidebar_label: 'Lesson 3.3: Path Planning for Bipedal Humanoid Movement with Nav
 ---
 
 import ChapterTranslator from '@site/src/components/Translation/ChapterTranslator';
+import ChapterPersonalization from '@site/src/components/Personalization/ChapterPersonalization';
 
 <ChapterTranslator>
+
+<ChapterPersonalization
+  chapterId="module3-lesson3-path-planning-nav2"
+  chapterTitle="Lesson 3.3: Path Planning for Bipedal Humanoid Movement with Nav2"
+/>
 
 # Lesson 3.3: Path Planning for Bipedal Humanoid Movement with Nav2
 

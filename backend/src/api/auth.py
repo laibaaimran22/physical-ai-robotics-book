@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, Form
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
@@ -45,16 +45,28 @@ async def login(
 
 @router.post("/register")
 async def register(
-    email: str,
-    password: str,
-    full_name: str = None,
+    email: str = Form(...),
+    password: str = Form(...),
+    full_name: Optional[str] = Form(None),
+    software_background_level: Optional[str] = Form(None),
+    hardware_background_level: Optional[str] = Form(None),
+    preferred_languages: Optional[str] = Form(None),
+    learning_goals: Optional[str] = Form(None),
     db: AsyncSession = Depends(get_db)
 ):
     """
     User registration endpoint.
     """
     service = get_auth_service(db)
-    user = await service.register_user(email, password, full_name)
+    user = await service.register_user(
+        email,
+        password,
+        full_name,
+        software_background_level,
+        hardware_background_level,
+        preferred_languages,
+        learning_goals
+    )
 
     if not user:
         raise HTTPException(
@@ -71,7 +83,11 @@ async def register(
         "token_type": "bearer",
         "user_id": user.id,
         "email": user.email,
-        "full_name": user.full_name
+        "full_name": user.full_name,
+        "software_background_level": user.software_background_level,
+        "hardware_background_level": user.hardware_background_level,
+        "preferred_languages": user.preferred_languages,
+        "learning_goals": user.learning_goals
     }
 
 
@@ -137,6 +153,10 @@ async def get_current_user(
         "id": current_user.id,
         "email": current_user.email,
         "full_name": current_user.full_name,
+        "software_background_level": current_user.software_background_level,
+        "hardware_background_level": current_user.hardware_background_level,
+        "preferred_languages": current_user.preferred_languages,
+        "learning_goals": current_user.learning_goals,
         "is_active": current_user.is_active,
         "is_admin": current_user.is_admin
     }
