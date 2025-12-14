@@ -15,15 +15,14 @@ const config: Config = {
   },
 
   // Set the production url of your site here
-  url: 'https://laibaaimran22.github.io', // Updated to your GitHub Pages URL
+  url: 'https://new-physical-ai-robotics-book-1lsr.vercel.app', // Your actual Vercel deployment URL
   // Set the /<baseUrl>/ pathname under which your site is served
-  // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/', // Updated base URL for local development
+  // For Vercel deployment, it should be '/'
+  baseUrl: '/', // Base URL for Vercel deployment
 
-  // GitHub pages deployment config.
-  // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'laibaaimran22', // Updated to your GitHub username
-  projectName: 'physical-ai-robotics-book', // Updated to actual repo name
+  // Deployment configuration for Vercel
+  organizationName: 'laibaaimran22', // Your GitHub username
+  projectName: 'physical-ai-robotics-book', // Your repo name
 
   onBrokenLinks: 'throw',
 
@@ -151,7 +150,7 @@ const config: Config = {
 
   // Custom fields to pass environment variables to the client
   customFields: {
-    backendUrl: process.env.REACT_APP_BACKEND_URL || 'http://127.0.0.1:8000',
+    backendUrl: process.env.NEXT_PUBLIC_BACKEND_URL || 'https://physical-ai-backend-production-341e.up.railway.app',
   },
 };
 
