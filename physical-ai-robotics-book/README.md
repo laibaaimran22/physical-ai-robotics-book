@@ -2,8 +2,6 @@
 
 This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
 
-<!-- Build Trigger: 2025-01-06 16:45:00 -->
-
 ## Installation
 
 ```bash
