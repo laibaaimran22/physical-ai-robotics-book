@@ -11,8 +11,8 @@ const getBackendUrl = () => {
     }
   }
 
-  // Fallback to default URL
-  return 'http://127.0.0.1:8000';
+  // Fallback to Hugging Face Space URL
+  return 'https://laibaaaimran-backend-ai-book.hf.space';
 };
 
 const API_CONFIG = {
