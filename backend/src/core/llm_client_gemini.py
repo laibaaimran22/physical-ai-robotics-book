@@ -23,12 +23,13 @@ class GeminiLLMClient:
 
         # Initialize the generative model with only gemini-1.5-flash
         try:
+            # Create the generation config separately to avoid attribute conflicts
+            self.generation_config = genai.types.GenerationConfig(
+                temperature=self.temperature,
+                max_output_tokens=2048,
+            )
             self.model = genai.GenerativeModel(
-                model_name=self.model_name,
-                generation_config={
-                    "temperature": self.temperature,
-                    "max_output_tokens": 2048,
-                }
+                model_name=self.model_name
             )
             print(f"DEBUG: Successfully initialized Gemini model: {self.model_name}")
             logger.info(f"Successfully initialized Gemini model: {self.model_name}")
@@ -69,7 +70,10 @@ class GeminiLLMClient:
 
         try:
             # Generate response
-            response = self.model.generate_content(full_prompt)
+            response = self.model.generate_content(
+                full_prompt,
+                generation_config=self.generation_config
+            )
             print(f"DEBUG generate_response: Got response object: {response is not None}")
 
             if response.text:
@@ -125,7 +129,10 @@ class GeminiLLMClient:
 
         try:
             # Generate response
-            response = self.model.generate_content(full_prompt)
+            response = self.model.generate_content(
+                full_prompt,
+                generation_config=self.generation_config
+            )
 
             if response.text:
                 return response.text.strip()

@@ -55,6 +55,17 @@ class RAGService:
             # Prepare context from similar chunks
             context = "\n\n".join([chunk["content"] for chunk in similar_chunks])
 
+            # Limit context length to prevent exceeding LLM token limits
+            # OpenRouter models typically have max context of ~16K tokens, so we limit to ~8K to be safe
+            max_context_length = 8000  # characters, roughly equivalent to ~6000-8000 tokens
+            if len(context) > max_context_length:
+                print(f"DEBUG RAG: Context too long ({len(context)} chars), truncating to {max_context_length}")
+                context = context[:max_context_length]
+                # Try to truncate at a sentence boundary if possible
+                last_sentence_end = max(context.rfind('.'), context.rfind('!'), context.rfind('?'))
+                if last_sentence_end > max_context_length * 0.8:  # If sentence end is reasonably close to the end
+                    context = context[:last_sentence_end + 1]
+
             print(f"DEBUG RAG: Creating personalized prompt with user_background: {user_background}")
             # Prepare the prompt with context and user background for personalization
             prompt = self._create_personalized_prompt(query, context, user_background)
@@ -196,6 +207,17 @@ class RAGService:
         # Include the selected text as primary context
         context = f"User-Selected Text: {selected_text}\n\nSimilar Content from Book:\n"
         context += "\n\n".join([f"- {chunk['content']}" for chunk in similar_chunks])
+
+        # Limit context length to prevent exceeding LLM token limits
+        # OpenRouter models typically have max context of ~16K tokens, so we limit to ~8K to be safe
+        max_context_length = 8000  # characters, roughly equivalent to ~6000-8000 tokens
+        if len(context) > max_context_length:
+            print(f"DEBUG RAG 2: Context too long ({len(context)} chars), truncating to {max_context_length}")
+            context = context[:max_context_length]
+            # Try to truncate at a sentence boundary if possible
+            last_sentence_end = max(context.rfind('.'), context.rfind('!'), context.rfind('?'))
+            if last_sentence_end > max_context_length * 0.8:  # If sentence end is reasonably close to the end
+                context = context[:last_sentence_end + 1]
 
         print(f"DEBUG RAG 2: Creating personalized prompt with user_background: {user_background}")
         # Prepare the prompt with both selected text and similar chunks, plus user background for personalization
