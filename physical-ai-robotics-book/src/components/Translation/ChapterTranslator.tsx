@@ -64,7 +64,7 @@ export default function ChapterTranslator({ children }: ChapterTranslatorProps) 
       }
 
       const data = await response.json();
-      return data.translatedText;
+      return data.translated_text || data.translatedText;
     } catch (backendErr) {
       console.error('Backend translation failed, falling back to MyMemory:', backendErr);
 
@@ -141,11 +141,11 @@ export default function ChapterTranslator({ children }: ChapterTranslatorProps) 
         throw new Error('No text content found to translate');
       }
 
-      console.log('Text to translate:', textToTranslate.substring(0, 100) + '...');
+      console.log('Text to translate:', (textToTranslate || '').substring(0, 100) + '...');
 
       const urduText = await translateToUrdu(textToTranslate);
 
-      console.log('Translated text:', urduText.substring(0, 100) + '...');
+      console.log('Translated text:', (urduText || '').substring(0, 100) + '...');
 
       setTranslatedContent(urduText);
       setTranslated(true);
