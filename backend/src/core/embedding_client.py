@@ -1,9 +1,6 @@
 from typing import List, Optional
 import numpy as np
 import openai
-from cohere import Client as CohereClient
-from sentence_transformers import SentenceTransformer
-import google.generativeai as genai
 from ..config.settings import settings
 import logging
 
@@ -12,19 +9,19 @@ logger = logging.getLogger(__name__)
 
 
 class EmbeddingClient:
-    """Client for generating embeddings using various providers (OpenAI, Cohere, local)."""
+    """Client for generating embeddings using various providers (OpenAI, local fallback)."""
 
     def __init__(self):
         self.model_name = settings.EMBEDDING_MODEL
-        # Use 384 dimensions to match the existing Qdrant collection that was likely created with all-MiniLM-L6-v2
+        # Use 384 dimensions to match the existing Qdrant collection
         # This ensures compatibility with the existing vector store
         self.dimension = 384
 
         # Initialize clients based on available API keys
         self.openai_client = None
-        self.cohere_client = None
-        self.gemini_client = None
+        self.gemini_api_key = None
         self.local_model = None
+        self.sentence_transformers_available = False
 
         # Initialize OpenAI client if API key is provided
         if settings.OPENAI_API_KEY:
@@ -34,35 +31,33 @@ class EmbeddingClient:
             except Exception as e:
                 logger.warning(f"Failed to initialize OpenAI client: {e}")
 
-        # Initialize Cohere client if API key is provided
-        if settings.COHERE_API_KEY:
-            try:
-                self.cohere_client = CohereClient(api_key=settings.COHERE_API_KEY)
-                logger.info("Initialized Cohere embedding client")
-            except Exception as e:
-                logger.warning(f"Failed to initialize Cohere client: {e}")
-
         # Initialize Gemini client if API key is provided
         gemini_api_key = settings.GOOGLE_GEMINI_API_KEY or settings.GEMINI_API_KEY
         if gemini_api_key:
             try:
+                import google.generativeai as genai
                 genai.configure(api_key=gemini_api_key)
                 # For embedding generation, we'll use the embedding models
-                # Note: Gemini API doesn't have a dedicated embedding client like OpenAI/Cohere
-                # We'll handle embedding generation differently
                 self.gemini_api_key = gemini_api_key
                 logger.info("Initialized Gemini embedding client")
             except Exception as e:
                 logger.warning(f"Failed to initialize Gemini client: {e}")
                 self.gemini_api_key = None
 
-        # Initialize local model as fallback
+        # Try to initialize local model as fallback (only if sentence_transformers is available)
         try:
+            from sentence_transformers import SentenceTransformer
             self.local_model = SentenceTransformer('all-MiniLM-L6-v2')
+            self.sentence_transformers_available = True
             logger.info("Initialized local embedding model: all-MiniLM-L6-v2")
+        except ImportError:
+            logger.warning("sentence-transformers not available, local embeddings disabled")
+            self.local_model = None
+            self.sentence_transformers_available = False
         except Exception as e:
             logger.error(f"Failed to initialize local embedding model: {e}")
             self.local_model = None
+            self.sentence_transformers_available = False
 
     def generate_embedding(self, text: str) -> List[float]:
         """
@@ -74,23 +69,7 @@ class EmbeddingClient:
         Returns:
             Embedding vector as a list of floats
         """
-        # Try local model first to ensure correct dimensions (384) that match the Qdrant collection
-        if self.local_model:
-            try:
-                embedding = self.local_model.encode([text])
-                result = embedding[0].tolist()
-                # Ensure the result has the correct dimension
-                if len(result) != self.dimension:
-                    # If dimensions don't match, truncate or pad as needed
-                    if len(result) > self.dimension:
-                        result = result[:self.dimension]
-                    else:
-                        result.extend([0.0] * (self.dimension - len(result)))
-                return result
-            except Exception as e:
-                logger.warning(f"Local embedding failed: {e}")
-
-        # Try OpenAI next if available
+        # Try OpenAI first if available (primary method for Hugging Face Spaces)
         if self.openai_client:
             try:
                 response = self.openai_client.embeddings.create(
@@ -109,14 +88,11 @@ class EmbeddingClient:
             except Exception as e:
                 logger.warning(f"OpenAI embedding failed: {e}")
 
-        # Try Cohere next if available
-        if self.cohere_client:
+        # Try local model if available and sentence_transformers is present
+        if self.local_model and self.sentence_transformers_available:
             try:
-                response = self.cohere_client.embed(
-                    texts=[text],
-                    model=self.model_name
-                )
-                result = response.embeddings[0]
+                embedding = self.local_model.encode([text])
+                result = embedding[0].tolist()
                 # Ensure the result has the correct dimension
                 if len(result) != self.dimension:
                     # If dimensions don't match, truncate or pad as needed
@@ -126,13 +102,12 @@ class EmbeddingClient:
                         result.extend([0.0] * (self.dimension - len(result)))
                 return result
             except Exception as e:
-                logger.warning(f"Cohere embedding failed: {e}")
+                logger.warning(f"Local embedding failed: {e}")
 
-        # Try Gemini last (with dimension adjustment)
+        # Try Gemini next if available
         if self.gemini_api_key:
             try:
-                # Configure the API
-                genai.configure(api_key=self.gemini_api_key)
+                import google.generativeai as genai
 
                 # Use the embedding generation function
                 # Google's embedding models are different from the generative models
@@ -167,24 +142,7 @@ class EmbeddingClient:
         Returns:
             List of embedding vectors
         """
-        # Try local model first to ensure correct dimensions (384) that match the Qdrant collection
-        if self.local_model:
-            try:
-                embeddings = self.local_model.encode(texts)
-                results = [embedding.tolist() for embedding in embeddings]
-                # Ensure all results have the correct dimension
-                for i, result in enumerate(results):
-                    if len(result) != self.dimension:
-                        # If dimensions don't match, truncate or pad as needed
-                        if len(result) > self.dimension:
-                            results[i] = result[:self.dimension]
-                        else:
-                            results[i].extend([0.0] * (self.dimension - len(result)))
-                return results
-            except Exception as e:
-                logger.warning(f"Local batch embedding failed: {e}")
-
-        # Try OpenAI next if available
+        # Try OpenAI first if available (primary method for Hugging Face Spaces)
         if self.openai_client:
             try:
                 response = self.openai_client.embeddings.create(
@@ -204,14 +162,11 @@ class EmbeddingClient:
             except Exception as e:
                 logger.warning(f"OpenAI batch embedding failed: {e}")
 
-        # Try Cohere next if available
-        if self.cohere_client:
+        # Try local model if available and sentence_transformers is present
+        if self.local_model and self.sentence_transformers_available:
             try:
-                response = self.cohere_client.embed(
-                    texts=texts,
-                    model=self.model_name
-                )
-                results = response.embeddings
+                embeddings = self.local_model.encode(texts)
+                results = [embedding.tolist() for embedding in embeddings]
                 # Ensure all results have the correct dimension
                 for i, result in enumerate(results):
                     if len(result) != self.dimension:
@@ -222,13 +177,12 @@ class EmbeddingClient:
                             results[i].extend([0.0] * (self.dimension - len(result)))
                 return results
             except Exception as e:
-                logger.warning(f"Cohere batch embedding failed: {e}")
+                logger.warning(f"Local batch embedding failed: {e}")
 
-        # Try Gemini last (with dimension adjustment)
+        # Try Gemini next if available
         if self.gemini_api_key:
             try:
-                # Configure the API
-                genai.configure(api_key=self.gemini_api_key)
+                import google.generativeai as genai
 
                 # Process embeddings one by one since genai.embed_content doesn't support batch
                 embeddings = []

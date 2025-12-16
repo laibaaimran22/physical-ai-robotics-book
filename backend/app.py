@@ -7,4 +7,5 @@ load_dotenv()
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
+    # Hugging Face Spaces expects the app to run on port 7860 by default
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 7860)))

@@ -1,81 +1,39 @@
-# Physical AI & Humanoid Robotics Book Platform Backend
+---
+title: Physical AI & Humanoid Robotics Book Platform
+emoji: 🤖
+colorFrom: blue
+colorTo: green
+sdk: docker
+app_file: app.py
+pinned: false
+---
 
-## Overview
+# Physical AI & Humanoid Robotics Book Platform Backend
 
 This is a comprehensive backend system for the Physical AI & Humanoid Robotics book platform, featuring:
 
 - FastAPI-based backend with async architecture
 - RAG (Retrieval Augmented Generation) chatbot with Qdrant vector search
+- Translation functionality with MyMemory → OpenRouter → Gemini → OpenAI fallback
 - Neon serverless Postgres for primary database
 - Document ingestion pipeline supporting Markdown, HTML, PDF, and text files
 - Free tier API limits and resource management
 - Optional user authentication and personalization features
 
-## Architecture
-
-The backend follows a clean architecture with clear separation of concerns:
-
-- **API Layer**: FastAPI endpoints with request/response validation
-- **Service Layer**: Business logic and cross-cutting concerns
-- **Database Layer**: Database operations and CRUD operations
-- **Core Layer**: Core functionality (embeddings, vector store, LLM client)
-
-## Installation
-
-1. Clone the repository
-2. Create a virtual environment:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Set up environment variables (copy `.env.example` to `.env` and fill in your values)
-
-## Configuration
-
-The application uses environment variables for configuration. Copy `.env.example` to `.env` and set the following:
-
-- `DATABASE_URL`: Connection string for Neon Postgres database
-- `QDRANT_URL`: URL for Qdrant vector store
-- `QDRANT_API_KEY`: API key for Qdrant (if required)
-- `OPENAI_API_KEY`: API key for OpenAI (optional, for embeddings)
-- `HUGGINGFACE_API_KEY`: API key for Hugging Face (optional)
-- `OLLAMA_BASE_URL`: Base URL for Ollama (default: http://localhost:11434)
-- `JWT_SECRET_KEY`: Secret key for JWT tokens
-- Various other settings for rate limiting, resource management, etc.
-
-## Running the Application
-
-To run the application in development mode:
-
-```bash
-uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-The API will be available at `http://localhost:8000`.
-
-## API Documentation
-
-Interactive API documentation is available at:
-- Swagger UI: `http://localhost:8000/api/v1/docs`
-- ReDoc: `http://localhost:8000/api/v1/redoc`
-
 ## Features
-
-### Document Ingestion
-- Admin-only upload of various file formats (Markdown, HTML, PDF, text)
-- Automatic content chunking and metadata extraction
-- Embedding generation and storage in Qdrant vector store
-- Ingestion job tracking and status monitoring
 
 ### RAG Chatbot
 - Semantic search against ingested content
-- Context-aware AI responses using local models (Ollama/Hugging Face)
+- Context-aware AI responses using configurable LLM clients (OpenRouter > OpenAI > Gemini fallback)
 - Hallucination prevention with strict source referencing
 - Support for selected-text → RAG API workflow
+
+### Translation Service
+- **MyMemory** as primary translation service (free, handles Unicode/Urdu text)
+- **OpenRouter** as first fallback for translation
+- **Google Gemini** as second fallback for translation
+- **OpenAI** as final fallback for translation
+- Proper URL encoding for Unicode characters
 
 ### Content Management
 - CRUD operations for books, chapters, lessons, and sections
@@ -87,25 +45,32 @@ Interactive API documentation is available at:
 - Personalization features (notes, highlights, bookmarks)
 - API usage tracking and rate limiting
 
-### Resource Management
-- Free tier with enforced limits (30 queries/day, 50 search/day, etc.)
-- Rate limiting middleware (100 requests/minute per user)
-- Usage monitoring and reporting
+## Configuration
+
+This Space requires the following environment variables to be set:
+
+- `OPENAI_API_KEY`: API key for OpenAI (optional, for embeddings and fallback)
+- `GOOGLE_GEMINI_API_KEY`: API key for Google Gemini (optional, for embeddings and fallback)
+- `OPENROUTER_API_KEY`: API key for OpenRouter (for translation fallback)
+- `QDRANT_HOST`: URL for Qdrant vector store
+- `DATABASE_URL`: Connection string for database
+- `JWT_SECRET_KEY`: Secret key for JWT tokens
 
 ## Technologies Used
 
 - **FastAPI**: Modern, fast web framework for building APIs
 - **SQLAlchemy**: SQL toolkit and ORM for database operations
 - **Qdrant**: Vector similarity search engine
-- **Neon**: Serverless Postgres database
-- **Ollama/Hugging Face**: Free LLM models for RAG functionality
+- **OpenRouter/OpenAI/Google Gemini**: LLM models for RAG and translation
 - **Pydantic**: Data validation and settings management
 - **AsyncIO**: Asynchronous programming for high concurrency
+
+## API Documentation
+
+Interactive API documentation is available at:
+- Swagger UI: `/api/v1/docs`
+- ReDoc: `/api/v1/redoc`
 
 ## License
 
 This project is licensed under the terms specified in the project constitution.
-
-## Contributing
-
-Please refer to the project constitution for contribution guidelines.
