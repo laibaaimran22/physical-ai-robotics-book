@@ -39,43 +39,85 @@ export default function ChapterTranslator({ children }: ChapterTranslatorProps) 
     return '';
   };
 
-  // Free translation using MyMemory API (no backend needed)
+  // Translation using backend service as primary with MyMemory as fallback
   async function translateToUrdu(text: string): Promise<string> {
-    // Split text into chunks (MyMemory has 500 char limit per request)
-    const chunkSize = 500;
-    const chunks: string[] = [];
-
-    for (let i = 0; i < text.length; i += chunkSize) {
-      chunks.push(text.substring(i, i + chunkSize));
-    }
-
+    // First try the backend translation API
     try {
-      const translatedChunks = await Promise.all(
-        chunks.map(async (chunk) => {
-          const response = await fetch(
-            `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
-              chunk
-            )}&langpair=en|ur`
-          );
+      // Import API_CONFIG dynamically to avoid circular dependencies
+      const API_CONFIG = (await import('../../config/api')).default;
 
-          if (!response.ok) {
-            throw new Error('Translation API request failed');
-          }
-
-          const data = await response.json();
-
-          if (data.responseStatus !== 200) {
-            throw new Error(data.responseDetails || 'Translation failed');
-          }
-
-          return data.responseData.translatedText;
+      const response = await fetch(`${API_CONFIG.BACKEND_URL}/api/v1/translation`, {
+        method: 'POST',
+        credentials: 'include', // Include cookies for authentication if needed
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: text,
+          targetLanguage: 'ur',
+          sourceLanguage: 'en'
         })
-      );
+      });
 
-      return translatedChunks.join(' ');
-    } catch (err) {
-      console.error('Translation error:', err);
-      throw new Error('Failed to translate content. Please try again.');
+      if (!response.ok) {
+        throw new Error('Backend translation API request failed');
+      }
+
+      const data = await response.json();
+      return data.translatedText;
+    } catch (backendErr) {
+      console.error('Backend translation failed, falling back to MyMemory:', backendErr);
+
+      // Fallback to MyMemory API
+      const chunkSize = 500;
+      const chunks: string[] = [];
+
+      for (let i = 0; i < text.length; i += chunkSize) {
+        chunks.push(text.substring(i, i + chunkSize));
+      }
+
+      try {
+        const translatedChunks = await Promise.all(
+          chunks.map(async (chunk) => {
+            const response = await fetch(
+              `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
+                chunk
+              )}&langpair=en|ur`
+            );
+
+            if (!response.ok) {
+              throw new Error('MyMemory translation API request failed');
+            }
+
+            const data = await response.json();
+
+            if (data.responseStatus !== 200) {
+              // Check if it's a rate limit error
+              if (data.responseStatus === 429 || (data.responseDetails && data.responseDetails.includes("FREE TRANSLATIONS FOR TODAY"))) {
+                throw new Error("Daily translation limit reached. Please try again tomorrow.");
+              }
+              throw new Error(data.responseDetails || 'Translation failed');
+            }
+
+            return data.responseData.translatedText;
+          })
+        );
+
+        return translatedChunks.join(' ');
+      } catch (mymemoryErr) {
+        console.error('MyMemory translation also failed:', mymemoryErr);
+
+        let errorMessage = 'Failed to translate content. Please try again.';
+        if (mymemoryErr instanceof Error) {
+          if (mymemoryErr.message.includes("FREE TRANSLATIONS FOR TODAY")) {
+            errorMessage = "Daily translation limit reached. Please try again tomorrow.";
+          } else {
+            errorMessage = mymemoryErr.message;
+          }
+        }
+
+        throw new Error(errorMessage);
+      }
     }
   }
 

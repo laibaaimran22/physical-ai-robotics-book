@@ -24,37 +24,34 @@ async def get_db() -> Generator[AsyncSession, None, None]:
             await session.close()
 
 
-def get_current_user():
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: AsyncSession = Depends(get_db)
+) -> User:
     """Dependency to get the current authenticated user."""
-    async def _get_current_user(
-        credentials: HTTPAuthorizationCredentials = Depends(security),
-        db: AsyncSession = Depends(get_db)
-    ) -> User:
-        credentials_exception = HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"},
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    try:
+        payload = jwt.decode(
+            credentials.credentials,
+            settings.JWT_SECRET_KEY,
+            algorithms=[settings.JWT_ALGORITHM]
         )
-
-        try:
-            payload = jwt.decode(
-                credentials.credentials,
-                settings.JWT_SECRET_KEY,
-                algorithms=[settings.JWT_ALGORITHM]
-            )
-            user_id: str = payload.get("sub")
-            if user_id is None:
-                raise credentials_exception
-        except InvalidTokenError:
+        user_id: str = payload.get("sub")
+        if user_id is None:
             raise credentials_exception
+    except InvalidTokenError:
+        raise credentials_exception
 
-        user = await get_user_by_id(db, user_id=int(user_id))
-        if user is None:
-            raise credentials_exception
+    user = await get_user_by_id(db, user_id=int(user_id))
+    if user is None:
+        raise credentials_exception
 
-        return user
-
-    return _get_current_user
+    return user
 
 
 async def get_optional_user(

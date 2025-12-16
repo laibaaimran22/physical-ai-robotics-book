@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: Optional[str] = Field(default=None, alias="OPENAI_API_KEY")
     HUGGINGFACE_API_KEY: Optional[str] = Field(default=None, alias="HUGGINGFACE_API_KEY")
     GOOGLE_GEMINI_API_KEY: Optional[str] = Field(default=None, alias="GOOGLE_GEMINI_API_KEY")
+    OPENROUTER_API_KEY: Optional[str] = Field(default=None, alias="OPENROUTER_API_KEY")
     # For backward compatibility with existing .env files
     GEMINI_API_KEY: Optional[str] = Field(default=None, alias="GEMINI_API_KEY")
 
@@ -39,7 +40,7 @@ class Settings(BaseSettings):
 
     # LLM Configuration
     LLM_MODEL: str = "gpt-3.5-turbo"
-    GEMINI_MODEL_NAME: str = "gemini-1.5-flash"
+    GEMINI_MODEL_NAME: str = "gemini-2.5-flash"  # Using the latest available model
     TEMPERATURE: float = 0.3
 
     # Embedding Configuration

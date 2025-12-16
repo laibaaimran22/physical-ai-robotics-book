@@ -311,6 +311,12 @@ def get_vector_store():
     """Get or create the vector store instance with lazy initialization."""
     if not hasattr(get_vector_store, '_instance'):
         get_vector_store._instance = VectorStore()
-        # Initialize the collection on first access
-        get_vector_store._instance.create_collection()
+        # Initialize the collection on first access, but handle connection failures gracefully
+        try:
+            get_vector_store._instance.create_collection()
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Failed to initialize vector store collection: {e}. Running in offline mode.")
+            # Continue without the collection - searches will return empty results
     return get_vector_store._instance

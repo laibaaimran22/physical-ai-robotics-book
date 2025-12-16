@@ -7,7 +7,7 @@ import json
 
 from src.config.database import get_db_session as get_db
 from src.models.user import User
-from src.api.deps import get_current_user as get_current_user_dep
+from src.api.deps import get_current_user
 from src.database.crud.user import update_user
 
 router = APIRouter()
@@ -41,7 +41,7 @@ class PersonalizationRequest(BaseModel):
 # Endpoint to get user profile with background information
 @router.get("/profile", response_model=dict)
 async def get_user_profile(
-    current_user: User = Depends(get_current_user_dep),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
@@ -66,7 +66,7 @@ async def get_user_profile(
 @router.post("/profile/update")
 async def update_user_background(
     request: UpdateBackgroundRequest,
-    current_user: User = Depends(get_current_user_dep),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
@@ -104,7 +104,7 @@ async def update_user_background(
 @router.get("/personalize/{content_type}")
 async def get_personalized_content(
     content_type: str,
-    current_user: User = Depends(get_current_user_dep),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
@@ -180,7 +180,7 @@ async def get_personalized_content(
 @router.get("/personalize/{chapter_id}/preferences")
 async def get_chapter_preferences(
     chapter_id: str,
-    current_user: User = Depends(get_current_user_dep),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
@@ -230,7 +230,7 @@ async def get_chapter_preferences(
 async def save_chapter_preferences(
     chapter_id: str,
     request: PersonalizationRequest,
-    current_user: User = Depends(get_current_user_dep),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """

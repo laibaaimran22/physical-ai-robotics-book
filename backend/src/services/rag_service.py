@@ -60,62 +60,21 @@ class RAGService:
             prompt = self._create_personalized_prompt(query, context, user_background)
             print(f"DEBUG RAG: Generated personalized prompt, length: {len(prompt)}")
 
-            # Generate response using Google Gemini (native API), or fallback
-            response_text = ""
+            # Generate response using the configurable LLM client with fallbacks
+            from ..core.llm_client import get_llm_client
 
-            # Check if we have Google Gemini API key first (prioritize Gemini)
-            if (settings.GOOGLE_GEMINI_API_KEY or settings.GEMINI_API_KEY):
-                try:
-                    # Use the native Google Generative AI library instead of OpenAI-compatible endpoint
-                    # to avoid model name conflicts
-                    from ..core.llm_client_gemini import gemini_client
+            try:
+                llm_client = get_llm_client()
+                response_text = await llm_client.generate_response(prompt, context)
+                print(f"DEBUG RAG: Generated response using configurable LLM client: {bool(response_text)}")
 
-                    print(f"DEBUG RAG: gemini_client is None: {gemini_client is None}")
-                    if gemini_client:
-                        print(f"DEBUG RAG: gemini_client.model is None: {gemini_client.model is None}")
-                        if hasattr(gemini_client, 'model') and gemini_client.model:
-                            print(f"DEBUG RAG: gemini_client model name: {gemini_client.model.model_name}")
-
-                        response_text = gemini_client.generate_response(prompt, context)
-                        print(f"DEBUG RAG: Generated response using gemini_client: {bool(response_text)}")
-
-                        # If the response indicates an error, don't treat it as success
-                        if "error" in response_text.lower() or "couldn't generate" in response_text.lower():
-                            response_text = ""
-                            print(f"DEBUG RAG: Response contained error, setting to empty: {response_text}")
-                    else:
-                        print("DEBUG RAG: gemini_client is None, cannot generate response")
-                        response_text = ""
-
-                except Exception as e:
-                    print(f"DEBUG RAG: Gemini API request failed: {e}")
-                    logger.error(f"Gemini API request failed: {e}")
-                    response_text = ""
-
-            # Only try OpenAI if Gemini is not configured or failed
-            # (Remove this section if you want Gemini-only behavior)
-            if not response_text and settings.OPENAI_API_KEY and not (settings.GOOGLE_GEMINI_API_KEY or settings.GEMINI_API_KEY):
-                try:
-                    import openai
-                    client = openai.AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
-                    response = await client.chat.completions.create(
-                        model=settings.LLM_MODEL,
-                        messages=[
-                            {"role": "system", "content": "You are an expert assistant for the Physical AI and Humanoid Robotics book. Answer questions based only on the provided context, adapting your explanation to the user's background and experience level."},
-                            {"role": "user", "content": prompt}
-                        ],
-                        max_tokens=500,
-                        temperature=settings.TEMPERATURE
-                    )
-                    response_text = response.choices[0].message.content
-                except Exception as e:
-                    logger.error(f"OpenAI request failed: {e}")
-                    # Fallback response
-                    response_text = f"I found some relevant information but couldn't generate a complete response: {str(e)}"
-
-            # If neither API worked, use fallback
-            if not response_text:
-                # Simple fallback response when no LLM is configured
+                # If the response indicates an error, log it but still return it
+                if "error" in response_text.lower() or "couldn't generate" in response_text.lower() or "currently experiencing high demand" in response_text.lower():
+                    print(f"DEBUG RAG: Response contained error message: {response_text}")
+            except Exception as e:
+                print(f"DEBUG RAG: Configurable LLM client failed: {e}")
+                logger.error(f"Configurable LLM client failed: {e}")
+                # Fallback response
                 response_text = f"Based on the context provided, I found {len(similar_chunks)} relevant pieces of information. In a full implementation with an LLM configured, I would generate a comprehensive answer for you."
 
         response_time_ms = int((time.time() - start_time) * 1000)
@@ -243,62 +202,21 @@ class RAGService:
         prompt = self._create_personalized_prompt_with_selected_text(query, selected_text, context, user_background)
         print(f"DEBUG RAG 2: Generated personalized prompt, length: {len(prompt)}")
 
-        # Generate response using Google Gemini (native API), or fallback
-        response_text = ""
+        # Generate response using the configurable LLM client with fallbacks
+        from ..core.llm_client import get_llm_client
 
-        # Check if we have Google Gemini API key first (prioritize Gemini)
-        if (settings.GOOGLE_GEMINI_API_KEY or settings.GEMINI_API_KEY):
-            try:
-                # Use the native Google Generative AI library instead of OpenAI-compatible endpoint
-                # to avoid model name conflicts
-                from ..core.llm_client_gemini import gemini_client
+        try:
+            llm_client = get_llm_client()
+            response_text = await llm_client.generate_response(prompt, context)
+            print(f"DEBUG RAG 2: Generated response using configurable LLM client: {bool(response_text)}")
 
-                print(f"DEBUG RAG 2: gemini_client is None: {gemini_client is None}")
-                if gemini_client:
-                    print(f"DEBUG RAG 2: gemini_client.model is None: {gemini_client.model is None}")
-                    if hasattr(gemini_client, 'model') and gemini_client.model:
-                        print(f"DEBUG RAG 2: gemini_client model name: {gemini_client.model.model_name}")
-
-                    response_text = gemini_client.generate_response(prompt, context)
-                    print(f"DEBUG RAG 2: Generated response using gemini_client: {bool(response_text)}")
-
-                    # If the response indicates an error, don't treat it as success
-                    if "error" in response_text.lower() or "couldn't generate" in response_text.lower():
-                        response_text = ""
-                        print(f"DEBUG RAG 2: Response contained error, setting to empty: {response_text}")
-                else:
-                    print("DEBUG RAG 2: gemini_client is None, cannot generate response")
-                    response_text = ""
-
-            except Exception as e:
-                print(f"DEBUG RAG 2: Gemini API request failed: {e}")
-                logger.error(f"Gemini API request failed: {e}")
-                response_text = ""
-
-        # Only try OpenAI if Gemini is not configured or failed
-        # (Remove this section if you want Gemini-only behavior)
-        if not response_text and settings.OPENAI_API_KEY and not (settings.GOOGLE_GEMINI_API_KEY or settings.GEMINI_API_KEY):
-            try:
-                import openai
-                client = openai.AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
-                response = await client.chat.completions.create(
-                    model=settings.LLM_MODEL,
-                    messages=[
-                        {"role": "system", "content": "You are an expert assistant for the Physical AI and Humanoid Robotics book. Answer questions based on the user-selected text and additional context provided, adapting your explanation to the user's background and experience level."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    max_tokens=500,
-                    temperature=settings.TEMPERATURE
-                )
-                response_text = response.choices[0].message.content
-            except Exception as e:
-                logger.error(f"OpenAI request failed: {e}")
-                # Fallback response
-                response_text = f"I found relevant information but couldn't generate a complete response: {str(e)}"
-
-        # If neither API worked, use fallback
-        if not response_text:
-            # Simple fallback response when no LLM is configured
+            # If the response indicates an error, log it but still return it
+            if "error" in response_text.lower() or "couldn't generate" in response_text.lower() or "currently experiencing high demand" in response_text.lower():
+                print(f"DEBUG RAG 2: Response contained error message: {response_text}")
+        except Exception as e:
+            print(f"DEBUG RAG 2: Configurable LLM client failed: {e}")
+            logger.error(f"Configurable LLM client failed: {e}")
+            # Fallback response
             response_text = f"Based on the selected text and similar content, I found {len(similar_chunks)} relevant pieces of information. In a full implementation with an LLM configured, I would generate a comprehensive answer for you."
 
         response_time_ms = int((time.time() - start_time) * 1000)

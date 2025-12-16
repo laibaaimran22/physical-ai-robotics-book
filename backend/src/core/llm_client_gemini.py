@@ -17,7 +17,7 @@ class GeminiLLMClient:
             raise ValueError("GOOGLE_GEMINI_API_KEY environment variable is required")
 
         genai.configure(api_key=self.api_key)
-        self.model_name = "gemini-1.5-flash"  # Use only this model
+        self.model_name = settings.GEMINI_MODEL_NAME  # Use model from settings
         self.temperature = settings.TEMPERATURE
         print(f"DEBUG: Model name: {self.model_name}")
 
