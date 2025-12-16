@@ -475,3 +475,6 @@ class RAGService:
 def get_rag_service(db: AsyncSession) -> RAGService:
     """Get an instance of the RAG service."""
     return RAGService(db)
+
+# Last updated: 2025-12-16 15:20:00 - Context length fixes and Gemini client fixes
+# Trigger rebuild with timestamp: 2025-12-16 15:25:00
