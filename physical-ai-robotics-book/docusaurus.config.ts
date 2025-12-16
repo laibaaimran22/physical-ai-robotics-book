@@ -151,7 +151,7 @@ const config: Config = {
 
   // Custom fields to pass environment variables to the client
   customFields: {
-    backendUrl: process.env.REACT_APP_BACKEND_URL || 'http://127.0.0.1:8000',
+    backendUrl: process.env.REACT_APP_BACKEND_URL || 'https://laibaaaimran-backend-ai-book.hf.space',
   },
 };
 
